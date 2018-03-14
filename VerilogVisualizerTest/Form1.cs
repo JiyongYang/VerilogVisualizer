@@ -16,13 +16,26 @@ namespace VerilogVisualizerTest
         public Form1()
         {
             InitializeComponent();
+            ReadXMLData();
         }
 
         private void ReadXMLData()
         {
-            XmlDocument xdoc = new XmlDocument();
+            using (XmlReader reader = XmlReader.Create("VerilogTestStructure.xml"))
 
-            xdoc.Load("");
+            /*
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.Load("VerilogTestStructure.xml");
+
+            XmlElement root = xdoc.DocumentElement;
+
+            XmlNodeList nodes = root.ChildNodes;
+
+            foreach (XmlNode node in nodes)
+            {
+                Console.WriteLine(node.ToString());
+            }
+            */
         }
     }    
 }
