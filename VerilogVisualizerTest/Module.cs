@@ -6,6 +6,20 @@ using System.Threading.Tasks;
 
 namespace VerilogVisualizerTest
 {
+    public enum Type { IN, OUT };
+
+    public struct Port
+    {
+        public Type type;
+        public string name;
+
+        public Port(Type t1, string name)
+        {
+            this.type = t1;
+            this.name = name;
+        }
+    }
+
     public struct VerilogConnection
     {
         public string from;
@@ -24,20 +38,19 @@ namespace VerilogVisualizerTest
 
     public class Module
     {
-        private string name
-        { get { return name; } set { name = value; } }
-        public List<string> ports;
+        public string name { get; set; }
+        public List<Port> ports;
         public List<VerilogConnection> verilogConnection;
         public List<Module> verilogInstance;
 
         public Module(string name)
         {
             this.name = name;
-            ports = new List<string>();
+            ports = new List<Port>();
             verilogConnection = new List<VerilogConnection>();
             verilogInstance = new List<Module>();
         }
- 
+
         /*
         public void addPorts(string port)
         {
@@ -54,6 +67,6 @@ namespace VerilogVisualizerTest
             verilogInstance.Add(mod);
         }
         */
-        
+
     }
 }

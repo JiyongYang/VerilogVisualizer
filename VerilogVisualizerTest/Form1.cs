@@ -13,29 +13,102 @@ namespace VerilogVisualizerTest
 {
     public partial class Form1 : Form
     {
+        public List<Module> root;
+
         public Form1()
         {
             InitializeComponent();
+
+            root = new List<Module>();
+
             ReadXMLData();
         }
 
         private void ReadXMLData()
         {
+            int XmlLevel = 0;
+
             using (XmlReader reader = XmlReader.Create("VerilogTestStructure.xml"))
-
-            /*
-            XmlDocument xdoc = new XmlDocument();
-            xdoc.Load("VerilogTestStructure.xml");
-
-            XmlElement root = xdoc.DocumentElement;
-
-            XmlNodeList nodes = root.ChildNodes;
-
-            foreach (XmlNode node in nodes)
             {
-                Console.WriteLine(node.ToString());
+                reader.MoveToContent();
+
+                parsingXmlData(reader, XmlLevel);
             }
-            */
+
+            Console.WriteLine(" PAUSE ");
         }
-    }    
+
+        private Module parsingXmlData(XmlReader reader, int XmlLevel)
+        {
+            Module temp = new Module("Error");
+            while (reader.Read())
+            {
+                string indent = "";
+                for (int i = 0; i < reader.Depth*4; i++)
+                {
+                    indent += " ";
+                }
+
+                Console.WriteLine(indent + reader.Name + "\t\t\t" + reader.NodeType.ToString());
+
+                if (reader.NodeType == XmlNodeType.Element)
+                {
+                    //Console.WriteLine(reader.Depth + " " + reader.Name);
+
+                    switch (reader.Name)
+                    {
+                        case "Module":
+                        case "ModuleInsatnce":
+                            temp = new Module(reader.GetAttribute("name"));
+                            break;
+                        case "VerilogPorts":
+                            while (reader.ReadToNextSibling("Port"))
+                            {
+                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "Port")
+                                {
+                                    //Console.WriteLine(reader.NodeType.ToString());
+
+                                    Port pt = new Port(reader.GetAttribute("type") == "In" ? Type.IN : Type.OUT, reader.GetAttribute("name"));
+                                    temp.ports.Add(pt);
+
+                                    // Break when next isn't <Port> element
+                                    //if (!reader.ReadToNextSibling("Port")) break;
+                                }
+                            }
+                            break;
+                        case "VerilogConnections":
+                            while (reader.ReadToNextSibling("VerilogConnection"))
+                            {
+                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "VerilogConnection")
+                                {
+                                    VerilogConnection conn = new VerilogConnection(reader.GetAttribute("from"),
+                                        reader.GetAttribute("fPort"), reader.GetAttribute("to"), reader.GetAttribute("tPort"));
+                                    temp.verilogConnection.Add(conn);
+
+                                    //if (!reader.ReadToNextSibling("VerilogConnection")) break;
+                                }
+                                
+                            }
+                            break;
+                        case "VerilogInstance":
+                            XmlLevel += 1;
+                            Module rTemp = parsingXmlData(reader, XmlLevel);
+                            if (XmlLevel == 1)
+                                root.Add(temp);
+                            else
+                                temp.verilogInstance.Add(rTemp);
+                            XmlLevel -= 1;
+                            return temp;
+                        default:
+                            Console.WriteLine(reader.Name);
+                            break;
+                    }
+                    //Console.WriteLine("Pause");
+                }
+            }
+
+            return temp;
+        }
+
+    }
 }
