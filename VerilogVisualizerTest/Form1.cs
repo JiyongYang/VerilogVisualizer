@@ -28,11 +28,16 @@ namespace VerilogVisualizerTest
         {
             int XmlLevel = 0;
 
-            using (XmlReader reader = XmlReader.Create("VerilogTestStructure.xml"))
+            try
             {
-                reader.MoveToContent();
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load("VerilogTestStructure.xml");
 
-                parsingXmlData(reader, XmlLevel);
+
+            }
+            catch(InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
 
             Console.WriteLine(" PAUSE ");
@@ -110,5 +115,9 @@ namespace VerilogVisualizerTest
             return temp;
         }
 
+        private Module parsingXmlData(XmlNode node, int XmlLevel)
+        {
+            return new Module("test");
+        }
     }
 }
