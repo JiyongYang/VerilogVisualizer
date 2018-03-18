@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Modules>
+    <Module name="ModuleA">
+        <VerilogPorts>
+            <Port type="In" name="Input_A1">
+              <type>In</type>
+              <name>Input_A1</name>
+            </Port>
+            <Port type="In" name="Input_A2">
+              <type>In</type>
+              <name>Input_A2</name>
+            </Port>
+            <Port type="Out" name="Output_A1">
+              <type>Out</type>
+              <name>Output_A1</name>
+            </Port>
+        </VerilogPorts>
+        <VerilogConnections>
+            <VerilogConnection from="ModuleA" fPort="Input_A1" to="A_SubModuleA" tPort="Input_AA1">
+              <from>ModuelA</from>
+              <fPort>Input_A1</fPort>
+              <to>A_SubModuleA</to>
+              <tPort>Input_AA1</tPort>
+            </VerilogConnection>
+            <VerilogConnection from="ModuleA" fPort="Input_A2" to="A_SubModuleA" tPort="Input_AB2">
+              <from>ModuleA</from>
+              <fPort>Input_A2</fPort>
+              <to>A_SubModuleA</to>
+              <tPort>Input_AB2</tPort>
+            </VerilogConnection>
+            <VerilogConnection from="ModuleA" fPort="Output_A1" to="ModuleB" tPort="Input_B1">
+              <from>ModuleA</from>
+              <fPort>Output_A1</fPort>
+              <to>ModuleB</to>
+              <tPort>Input_B1</tPort>
+            </VerilogConnection>
+            <!-- from이 자신 모듈일 때만 connection 언급
+                    <VerilogConnection from="SubModuleA" to="SubModuleB"></VerilogConnection>
+                -->
+        </VerilogConnections>
+        <VerilogInstance>
+            <ModuleInsatnce name="A_SubModuleA">
+                <!-- ModuleInsatnce를 SubModule로 치환? -->
+                <VerilogPorts>
+                    <Port type="In" name="Input_AA1">
+                      <type>In</type>
+                      <name>Input_AA1</name>
+                    </Port>
+                    <Port type="Out" name="Output_AA1">
+                      <type>Out</type>
+                      <name>Output_AA1</name>
+                    </Port>
+                </VerilogPorts>
+                <VerilogConnections>
+                    <VerilogConnection from="A_SubModuleA" fPort="Input_AA1" to="A_SubModuleB" tPort="Input_AB1">
+                      <from>A_SubModuleA</from>
+                      <fPort>Input_AA1</fPort>
+                      <to>A_SubModuleB</to>
+                      <tPort>Input_AB1</tPort>
+                    </VerilogConnection>
+                </VerilogConnections>
+            </ModuleInsatnce>
+            <ModuleInsatnce name="A_SubModuleB">
+                <VerilogPorts>
+                    <Port type="In" name="Input_AB1">
+                      <type>In</type>
+                      <name>Input_AB1</name>
+                    </Port>
+                    <Port type="In" name="Input_AB2">
+                      <type>In</type>
+                      <name>Input_AB2</name>
+                    </Port>
+                    <Port type="OUt" name="Output_AB1">
+                      <type>OUt</type>
+                      <name>Output_AB1</name>
+                    </Port>
+                </VerilogPorts>
+                <VerilogConnections>
+                    <VerilogConnection from="A_SubModuleB" fPort="Output_AB1" to="ModuleA" tPort="Output_A1">
+                      <from>A_SubModuleB</from>
+                      <fPort>Output_AB1</fPort>
+                      <to>ModuleA</to>
+                      <tPort>Output_A1</tPort>
+                    </VerilogConnection>
+                </VerilogConnections>
+            </ModuleInsatnce>
+        </VerilogInstance>
+    </Module>
+    <Module name="ModuleB">
+        <VerilogPorts>
+            <Port type="In" name="Input_B1">
+              <type>In</type>
+              <name>Input_B1</name>
+            </Port>
+            <Port type="In" name="Input_B2">
+              <type>In</type>
+              <name>Input_B2</name>
+            </Port>
+            <Port  type="Out" name="Output_B1">
+              <type>Out</type>
+              <name>Output_B1</name>
+            </Port>
+        </VerilogPorts>
+        <VerilogConnections>
+            <VerilogConnection from="ModuleB" fPort="Input_B1" to="B_SubModuleA" tPort="Input_BA1">
+              <from>ModuleB</from>
+              <fPort>Input_B1</fPort>
+              <to>B_SubModuleA</to>
+              <tPort>Input_BA1</tPort>
+            </VerilogConnection>
+            <VerilogConnection from="B_SubModuleA" fPort="Output_A1" to="ModuleB" tPort="Input_B1">
+              <from>B_SubModuleA</from>
+              <fPort>Output_A1</fPort>
+              <to>ModuleB</to>
+              <tPort>Input_B1</tPort>
+            </VerilogConnection>
+        </VerilogConnections>
+        <VerilogInstance>
+            <ModuleInsatnce name="B_SubModuleA">
+                <VerilogPorts>
+                    <Port type="In" name = "Input_BA1">
+                      <type>In</type>
+                      <name>Input_BA1</name>
+                    </Port>
+                    <Port type="In" name = "Input_BA2">
+                      <type>In</type>
+                      <name>Input_BA2</name>
+                    </Port>
+                    <Port type="Out" name = "Output_BA1">
+                      <type>Out</type>
+                      <name>Output_BA1</name>
+                    </Port>
+                </VerilogPorts>
+                <VerilogConnections>
+                    <VerilogConnection from="B_SubModuleA" fPort="Output_BA1" to="ModuleB" tPort="Output_B1">
+                      <from>B_SubModuleA</from>
+                      <fPort>Output_BA1</fPort>
+                      <to>ModuleB</to>
+                      <tPort>Output_B1</tPort>
+                    </VerilogConnection>
+                </VerilogConnections>
+            </ModuleInsatnce>
+        </VerilogInstance>
+    </Module>
+</Modules>

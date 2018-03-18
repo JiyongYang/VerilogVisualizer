@@ -11,8 +11,8 @@
             <VerilogConnection from="ModuleA" fPort="Input_A2" to="A_SubModuleA" tPort="Input_AB2"></VerilogConnection>
             <VerilogConnection from="ModuleA" fPort="Output_A1" to="ModuleB" tPort="Input_B1"></VerilogConnection>
         </VerilogConnections>
-        <VerilogInstance>
-            <ModuleInsatnce name="A_SubModuleA">
+        <Modules>
+            <Module name="A_SubModuleA">
                 <VerilogPorts>
                     <Port type="In" name="Input_AA1"></Port>
                     <Port type="Out" name="Output_AA1"></Port>
@@ -20,8 +20,8 @@
                 <VerilogConnections>
                     <VerilogConnection from="A_SubModuleA" fPort="Input_AA1" to="A_SubModuleB" tPort="Input_AB1"></VerilogConnection>
                 </VerilogConnections>
-            </ModuleInsatnce>
-            <ModuleInsatnce name="A_SubModuleB">
+            </Module>
+            <Module name="A_SubModuleB">
                 <VerilogPorts>
                     <Port type="In" name="Input_AB1"></Port>
                     <Port type="In" name="Input_AB2"></Port>
@@ -30,8 +30,8 @@
                 <VerilogConnections>
                     <VerilogConnection from="A_SubModuleB" fPort="Output_AB1" to="ModuleA" tPort="Output_A1"></VerilogConnection>
                 </VerilogConnections>
-            </ModuleInsatnce>
-        </VerilogInstance>
+            </Module>
+        </Modules>
     </Module>
     <Module name="ModuleB">
         <VerilogPorts>
@@ -43,8 +43,8 @@
             <VerilogConnection from="ModuleB" fPort="Input_B1" to="B_SubModuleA" tPort="Input_BA1"></VerilogConnection>
             <VerilogConnection from="B_SubModuleA" fPort="Output_A1" to="ModuleB" tPort="Input_B1"></VerilogConnection>
         </VerilogConnections>
-        <VerilogInstance>
-            <ModuleInsatnce name="B_SubModuleA">
+        <Modules>
+            <Module name="B_SubModuleA">
                 <VerilogPorts>
                     <Port type="In" name = "Input_BA1"></Port>
                     <Port type="In" name = "Input_BA2"></Port>
@@ -53,7 +53,7 @@
                 <VerilogConnections>
                     <VerilogConnection from="B_SubModuleA" fPort="Output_BA1" to="ModuleB" tPort="Output_B1"></VerilogConnection>
                 </VerilogConnections>
-            </ModuleInsatnce>
-        </VerilogInstance>
+            </Module>
+        </Modules>
     </Module>
 </Modules>

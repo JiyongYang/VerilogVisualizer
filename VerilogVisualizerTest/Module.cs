@@ -27,7 +27,8 @@ namespace VerilogVisualizerTest
         public string to;
         public string tPort;
 
-        public VerilogConnection(string s1, string s2, string s3, string s4)
+        public VerilogConnection(string s1, string s2, 
+            string s3, string s4)
         {
             this.from = s1;
             this.fPort = s2;
@@ -40,15 +41,15 @@ namespace VerilogVisualizerTest
     {
         public string name { get; set; }
         public List<Port> ports;
-        public List<VerilogConnection> verilogConnection;
-        public List<Module> verilogInstance;
+        public List<VerilogConnection> verilogConnections;
+        public List<Module> verilogInstances;
 
         public Module(string name)
         {
             this.name = name;
             ports = new List<Port>();
-            verilogConnection = new List<VerilogConnection>();
-            verilogInstance = new List<Module>();
+            verilogConnections = new List<VerilogConnection>();
+            verilogInstances = new List<Module>();
         }
 
         /*

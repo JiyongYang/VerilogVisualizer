@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Modules>
+    <Module name="ModuleA">
+        <VerilogPorts>
+            <Port type="In" name="Input_A1"></Port>
+            <Port type="Out" name="Output_A1"></Port>
+        </VerilogPorts>
+        <VerilogConnections>
+            <VerilogConnection from="ModuleA" fPort="Input_A1" to="A_SubModuleA" tPort="Input_AA1"></VerilogConnection>
+        </VerilogConnections>
+        <VerilogInstance>
+            <ModuleInsatnce name="A_SubModuleA">
+                <VerilogPorts>
+                    <Port type="In" name="Input_AA1"></Port>
+                </VerilogPorts>
+                <VerilogConnections>
+                    <VerilogConnection from="A_SubModuleA" fPort="Input_AA1" to="A_SubModuleB" tPort="Input_AB1"></VerilogConnection>
+                </VerilogConnections>
+            </ModuleInsatnce>
+            <ModuleInsatnce name="A_SubModuleB">
+                <VerilogPorts>
+                    <Port type="In" name="Input_AB1"></Port>
+                </VerilogPorts>
+                <VerilogConnections>
+                    <VerilogConnection from="A_SubModuleB" fPort="Output_AB1" to="ModuleA" tPort="Output_A1"></VerilogConnection>
+                </VerilogConnections>
+            </ModuleInsatnce>
+        </VerilogInstance>
+    </Module>
+</Modules>
