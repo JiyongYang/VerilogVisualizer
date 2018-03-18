@@ -45,7 +45,7 @@
             this.nDrawingView1.Location = new System.Drawing.Point(12, 43);
             this.nDrawingView1.Name = "nDrawingView1";
             this.nDrawingView1.RenderTechnology = Nevron.GraphicsCore.RenderTechnology.GDIPlus;
-            this.nDrawingView1.Size = new System.Drawing.Size(512, 452);
+            this.nDrawingView1.Size = new System.Drawing.Size(1240, 626);
             this.nDrawingView1.TabIndex = 0;
             this.nDrawingView1.Text = "nDrawingView1";
             // 

@@ -13,21 +13,26 @@ using Nevron.GraphicsCore;
 using Nevron.Diagram;
 using Nevron.Diagram.Shapes;
 using Nevron.Diagram.WinForm;
+using Nevron.Filters;
 
 
 namespace VerilogVisualizerTest
 {
     public partial class Form1 : Form
     {
-        public List<Module> Moduels;
+        public List<Module> Modules;
+        private static readonly NFilter ExpandCollapseDecoratorFilter = new NInstanceOfTypeFilter(typeof(NExpandCollapseDecorator));
+
 
         public Form1()
         {
             InitializeComponent();
 
-            Moduels = new List<Module>();
+            Modules = new List<Module>();
 
             ReadXMLData();
+
+            testReadStructure();
         }
 
         private void ReadXMLData()
@@ -42,7 +47,7 @@ namespace VerilogVisualizerTest
                     Module temp = new Module(node.Attribute("name").Value);
 
                     parsingXmlData(node.Elements(), ref temp, 0);
-                    Moduels.Add(temp);
+                    Modules.Add(temp);
                 }
 
             }
@@ -53,12 +58,11 @@ namespace VerilogVisualizerTest
             Console.WriteLine("[NOTICE]---- successfully load XML file");
         }
 
-
         private void parsingXmlData(IEnumerable<XElement> nodes, ref Module temp, int depth)
         {
             foreach (var node in nodes)
             {
-                switch(node.Name.ToString())
+                switch (node.Name.ToString())
                 {
                     case "VerilogPorts":
                         foreach (var ele in node.Elements("Port"))
@@ -95,16 +99,28 @@ namespace VerilogVisualizerTest
             }
         }
 
+        private void testReadStructure()
+        {
+            if (Modules.Count > 0)
+            {
+                foreach (Module mod in Modules)
+                {
+                    Console.WriteLine(mod.name);
+                }
+            }
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             // begin view init
             nDrawingView1.BeginInit();
 
             // display the document in the view
             nDrawingView1.Document = nDrawingDocument1;
 
-            // do not show ports
-            nDrawingView1.GlobalVisibility.ShowPorts = false;
+            // show ports
+            nDrawingView1.GlobalVisibility.ShowPorts = true;
 
             // hide the grid
             nDrawingView1.Grid.Visible = false;
@@ -133,6 +149,9 @@ namespace VerilogVisualizerTest
             styleSheet.Style.StartArrowheadStyle.StrokeStyle = new NStrokeStyle(1, Color.Black);
             styleSheet.Style.EndArrowheadStyle.StrokeStyle = new NStrokeStyle(1, Color.Black);
 
+            InitDocument();
+
+            /*
             // create the begin shape 
             NShape begin = factory.CreateShape(FlowChartingShapes.Termination);
             begin.Bounds = new NRectangleF(100, 100, 100, 100);
@@ -236,6 +255,8 @@ namespace VerilogVisualizerTest
             curve.StartPlug.Connect(question1.Ports.GetChildAt(3) as NPort);
             curve.EndPlug.Connect(end.Ports.GetChildAt(1) as NPort);
             curve.InsertPoint(1, new NPointF(500, 600));
+            */
+
 
             // set a shadow to the nDrawingDocument1. Since styles are inheritable all objects will reuse this shadow
             nDrawingDocument1.Style.ShadowStyle = new NShadowStyle(
@@ -244,7 +265,7 @@ namespace VerilogVisualizerTest
                 new NPointL(5, 5),
                 1,
                 new NLength(3));
-
+            
             // shadows must be displayed behind document content
             nDrawingDocument1.ShadowsZOrder = ShadowsZOrder.BehindDocument;
 
@@ -253,6 +274,227 @@ namespace VerilogVisualizerTest
 
             //end view init
             nDrawingView1.EndInit();
+            
+
+            /*
+            // begin view init
+            nDrawingView1.BeginInit();
+
+            nDrawingView1.Grid.Visible = false;
+            nDrawingView1.HorizontalRuler.Visible = false;
+            nDrawingView1.VerticalRuler.Visible = false;
+            nDrawingView1.GlobalVisibility.ShowPorts = true;
+
+            // init document
+            nDrawingDocument1.BeginInit();
+            InitDocument();
+            nDrawingDocument1.EndInit();
+
+            // end view init
+            nDrawingView1.EndInit();
+            */
         }
+
+        
+        private void InitDocument()
+        {
+            List<NGroup> groups = new List<NGroup>();
+            
+            foreach (var mod in Modules)
+            {
+                NGroup group;
+                if (mod.verilogInstances.Count > 0)
+                {
+                    group = CreateGroup(mod.name, mod.verilogInstances);
+                }
+                else
+                {
+                    group = CreateGroup(mod.name);
+                }
+                group.Location = new NPointF(10, 10);
+                nDrawingDocument1.ActiveLayer.AddChild(group);
+                groups.Add(group);
+            }
+
+            // Connections
+            foreach (var mod in Modules)
+            {
+                ;
+            }
+
+
+            // Connect some shapes
+            /*
+            NGroup subgroupA1 = (NGroup)groupA.Shapes.GetChildAt(0);
+            NShape shapeA1a = (NShape)subgroupA1.Shapes.GetChildAt(0);
+            NGroup subgroupA2 = (NGroup)groupA.Shapes.GetChildAt(1);
+            NShape shapeA2a = (NShape)subgroupA2.Shapes.GetChildAt(0);
+            Connect(shapeA1a, shapeA2a);
+
+            NGroup subgroupB2 = (NGroup)groupB.Shapes.GetChildAt(1);
+            NShape shapeB2a = (NShape)subgroupB2.Shapes.GetChildAt(0);
+            Connect(shapeA2a, shapeB2a);
+            */
+        }
+
+        private NGroup CreateGroup(string name, List<Module> subModules)
+        {
+            NGroup group = new NGroup();
+            group.Name = name;
+
+            foreach (var mod in subModules)
+            {
+                NGroup subGroup;
+                if (mod.verilogInstances.Count > 0)
+                {
+                    subGroup = CreateSubgroup(mod.name, mod.verilogInstances);
+                }
+                else
+                {
+                    subGroup = CreateSubgroup(mod.name);
+                }
+                    
+                //subGroup.Location = new NPointF(0, 0);
+                group.Shapes.AddChild(subGroup);
+            }
+            
+            // Create the decorators
+            CreateDecorators(group, group.Name + " Decorators");
+
+            // Update the model bounds so that the subgroups are inside the specified padding
+            group.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
+            group.UpdateModelBounds();
+            group.AutoUpdateModelBounds = true;
+
+            ApplyProtections(group, true, false);
+            return group;
+        }
+
+        private NGroup CreateGroup(string name)
+        {
+            NGroup group = new NGroup();
+            group.Name = name;
+
+            NShape shape = CreateShape(name + "(Not subgroup)");
+            //shape.Location = new NPointF(0, 0);
+            group.Shapes.AddChild(shape);
+
+            // Create the decorators
+            CreateDecorators(group, group.Name + " Group");
+
+            // Update the model bounds so that the subgroups are inside the specified padding
+            group.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
+            group.UpdateModelBounds();
+            group.AutoUpdateModelBounds = true;
+
+            ApplyProtections(group, true, false);
+            return group;
+        }
+
+        private NGroup CreateSubgroup(string name)
+        {
+            NGroup subgroup = new NGroup();
+            subgroup.Name = name;
+
+            NShape shape1 = CreateShape(name + "shape");
+            //shape1.Location = new NPointF(0, 0);
+            subgroup.Shapes.AddChild(shape1);
+
+            // Create the decorators
+            CreateDecorators(subgroup, subgroup.Name + " Subgroup");
+
+            // Update the model bounds so that the shapes are inside the specified padding
+            subgroup.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
+            subgroup.UpdateModelBounds();
+
+            ApplyProtections(subgroup, true, true);
+            return subgroup;
+        }
+
+        private NGroup CreateSubgroup(string name, List<Module> subModules)
+        {
+            NGroup subgroup = new NGroup();
+            subgroup.Name = name;
+
+            foreach (var mod in subModules)
+            {
+                NGroup subGroup;
+                if (mod.verilogInstances.Count > 0)
+                    subGroup = CreateSubgroup(mod.name, mod.verilogInstances);
+                else
+                    subGroup = CreateSubgroup(mod.name);
+                //subGroup.Location = new NPointF(0, 0);
+                subgroup.Shapes.AddChild(subGroup);
+            }
+
+            // Create 2 shapes
+            NShape shape1 = CreateShape(name + "shape");
+            shape1.Location = new NPointF(0, 0);
+            subgroup.Shapes.AddChild(shape1);
+
+            // Create the decorators
+            CreateDecorators(subgroup, subgroup.Name + " Subgroup");
+
+            // Update the model bounds so that the shapes are inside the specified padding
+            subgroup.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
+            subgroup.UpdateModelBounds();
+
+            ApplyProtections(subgroup, true, true);
+            return subgroup;
+        }
+
+
+        private NShape CreateShape(string name)
+        {
+            NShape shape = new NRectangleShape(0, 0, 100, 100);
+            shape.Name = name;
+            shape.Text = name + " Node";
+
+            // Create a center port
+            shape.CreateShapeElements(ShapeElementsMask.Ports);
+            NDynamicPort port = new NDynamicPort(new NContentAlignment(0, 0), DynamicPortGlueMode.GlueToContour);
+            shape.Ports.AddChild(port);
+
+            ApplyProtections(shape, true, true);
+            return shape;
+        }
+
+        private void CreateDecorators(NShape shape, string decoratorText)
+        {
+            // Create the decorators
+            shape.CreateShapeElements(ShapeElementsMask.Decorators);
+
+            // Create a frame decorator
+            // We want the user to be able to select the shape when the frame is hit
+            NFrameDecorator frameDecorator = new NFrameDecorator();
+            frameDecorator.ShapeHitTestable = true;
+            frameDecorator.Header.Margins = new Nevron.Diagram.NMargins(20, 0, 0, 0);
+            frameDecorator.Header.Text = decoratorText;
+            shape.Decorators.AddChild(frameDecorator);
+
+            // Create an expand/collapse decorator
+            NExpandCollapseDecorator decorator = new NExpandCollapseDecorator();
+            shape.Decorators.AddChild(decorator);
+        }
+
+        private void Connect(NShape shape1, NShape shape2)
+        {
+            NLineShape line = new NLineShape();
+            nDrawingDocument1.ActiveLayer.AddChild(line);
+            line.StyleSheetName = "Connectors";
+            line.FromShape = shape1;
+            line.ToShape = shape2;
+        }
+
+        private void ApplyProtections(NShape shape, bool trackersEdit, bool move)
+        {
+            NAbilities protection = shape.Protection;
+            protection.TrackersEdit = trackersEdit;
+            protection.MoveX = move;
+            protection.MoveY = move;
+            shape.Protection = protection;
+        }
+        
+
     }
 }
