@@ -28,20 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            this.nDrawingDocument1 = new Nevron.Diagram.NDrawingDocument();
+            this.nDrawingView1 = new Nevron.Diagram.WinForm.NDrawingView();
             this.SuspendLayout();
+            // 
+            // nDrawingDocument1
+            // 
+            this.nDrawingDocument1.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("nDrawingDocument1.DesignTimeState")));
+            // 
+            // nDrawingView1
+            // 
+            this.nDrawingView1.AllowDrop = true;
+            this.nDrawingView1.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("nDrawingView1.DesignTimeState")));
+            this.nDrawingView1.Document = null;
+            this.nDrawingView1.Location = new System.Drawing.Point(12, 43);
+            this.nDrawingView1.Name = "nDrawingView1";
+            this.nDrawingView1.RenderTechnology = Nevron.GraphicsCore.RenderTechnology.GDIPlus;
+            this.nDrawingView1.Size = new System.Drawing.Size(512, 452);
+            this.nDrawingView1.TabIndex = 0;
+            this.nDrawingView1.Text = "nDrawingView1";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1404, 796);
+            this.ClientSize = new System.Drawing.Size(1264, 681);
+            this.Controls.Add(this.nDrawingView1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private Nevron.Diagram.NDrawingDocument nDrawingDocument1;
+        private Nevron.Diagram.WinForm.NDrawingView nDrawingView1;
     }
 }
 
