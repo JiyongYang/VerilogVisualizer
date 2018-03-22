@@ -29,31 +29,44 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.nDrawingDocument1 = new Nevron.Diagram.NDrawingDocument();
+            this.document = new Nevron.Diagram.NDrawingDocument();
             this.nDrawingView1 = new Nevron.Diagram.WinForm.NDrawingView();
+            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.SuspendLayout();
             // 
-            // nDrawingDocument1
+            // document
             // 
-            this.nDrawingDocument1.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("nDrawingDocument1.DesignTimeState")));
+            this.document.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("document.DesignTimeState")));
             // 
             // nDrawingView1
             // 
             this.nDrawingView1.AllowDrop = true;
             this.nDrawingView1.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("nDrawingView1.DesignTimeState")));
             this.nDrawingView1.Document = null;
-            this.nDrawingView1.Location = new System.Drawing.Point(12, 43);
+            this.nDrawingView1.Location = new System.Drawing.Point(12, 95);
             this.nDrawingView1.Name = "nDrawingView1";
             this.nDrawingView1.RenderTechnology = Nevron.GraphicsCore.RenderTechnology.GDIPlus;
-            this.nDrawingView1.Size = new System.Drawing.Size(1240, 626);
+            this.nDrawingView1.Size = new System.Drawing.Size(1001, 574);
             this.nDrawingView1.TabIndex = 0;
             this.nDrawingView1.Text = "nDrawingView1";
+            // 
+            // propertyGrid1
+            // 
+            this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.propertyGrid1.Location = new System.Drawing.Point(1019, 12);
+            this.propertyGrid1.Name = "propertyGrid1";
+            this.propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
+            this.propertyGrid1.Size = new System.Drawing.Size(233, 657);
+            this.propertyGrid1.TabIndex = 1;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1264, 681);
+            this.Controls.Add(this.propertyGrid1);
             this.Controls.Add(this.nDrawingView1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -64,8 +77,9 @@
 
         #endregion
 
-        private Nevron.Diagram.NDrawingDocument nDrawingDocument1;
+        private Nevron.Diagram.NDrawingDocument document;
         private Nevron.Diagram.WinForm.NDrawingView nDrawingView1;
+        private System.Windows.Forms.PropertyGrid propertyGrid1;
     }
 }
 

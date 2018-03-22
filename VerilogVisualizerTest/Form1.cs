@@ -10,10 +10,15 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 using Nevron.GraphicsCore;
+
 using Nevron.Diagram;
 using Nevron.Diagram.Shapes;
+using Nevron.Diagram.Layout;
+using Nevron.Diagram.Filters;
 using Nevron.Diagram.WinForm;
 using Nevron.Filters;
+using Nevron.Dom;
+using Nevron.Diagram.DataStructures;
 
 
 namespace VerilogVisualizerTest
@@ -21,8 +26,7 @@ namespace VerilogVisualizerTest
     public partial class Form1 : Form
     {
         public List<Module> Modules;
-        private static readonly NFilter ExpandCollapseDecoratorFilter = new NInstanceOfTypeFilter(typeof(NExpandCollapseDecorator));
-
+        //private NOrthogonalGraphLayout m_Layout;
 
         public Form1()
         {
@@ -31,8 +35,6 @@ namespace VerilogVisualizerTest
             Modules = new List<Module>();
 
             ReadXMLData();
-
-            testReadStructure();
         }
 
         private void ReadXMLData()
@@ -69,7 +71,7 @@ namespace VerilogVisualizerTest
                         {
                             //Console.WriteLine(ele.Attribute("name").Value);
                             Port pt = new Port(ele.Attribute("type").Value == "In" ? Type.IN : Type.OUT, ele.Attribute("name").Value);
-                            temp.ports.Add(pt);
+                            temp.Ports.Add(pt);
                         }
                         break;
                     case "VerilogConnections":
@@ -78,7 +80,7 @@ namespace VerilogVisualizerTest
                             //Console.WriteLine(ele.Attribute("fPort").Value);
                             VerilogConnection conn = new VerilogConnection(ele.Attribute("from").Value,
                                     ele.Attribute("fPort").Value, ele.Attribute("to").Value, ele.Attribute("tPort").Value);
-                            temp.verilogConnections.Add(conn);
+                            temp.VerilogConnections.Add(conn);
                         }
                         break;
                     case "Modules":
@@ -87,7 +89,7 @@ namespace VerilogVisualizerTest
                             //Console.WriteLine(subNode.Name.ToString());
                             Module subModule = new Module(subNode.Attribute("name").Value);
                             parsingXmlData(subNode.Elements(), ref subModule, depth + 1);
-                            temp.verilogInstances.Add(subModule);
+                            temp.VerilogInstances.Add(subModule);
                         }
                         break;
                     default:
@@ -99,25 +101,14 @@ namespace VerilogVisualizerTest
             }
         }
 
-        private void testReadStructure()
-        {
-            if (Modules.Count > 0)
-            {
-                foreach (Module mod in Modules)
-                {
-                    Console.WriteLine(mod.name);
-                }
-            }
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+
             // begin view init
             nDrawingView1.BeginInit();
 
             // display the document in the view
-            nDrawingView1.Document = nDrawingDocument1;
+            nDrawingView1.Document = document;
 
             // show ports
             nDrawingView1.GlobalVisibility.ShowPorts = true;
@@ -132,13 +123,10 @@ namespace VerilogVisualizerTest
             nDrawingView1.DocumentPadding = new Nevron.Diagram.NMargins(10);
 
             // init document
-            nDrawingDocument1.BeginInit();
-
-            // create the flowcharting shapes factory
-            NFlowChartingShapesFactory factory = new NFlowChartingShapesFactory(nDrawingDocument1);
+            document.BeginInit();
 
             // modify the connectors style sheet
-            NStyleSheet styleSheet = (nDrawingDocument1.StyleSheets.GetChildByName(NDR.NameConnectorsStyleSheet, -1) as NStyleSheet);
+            NStyleSheet styleSheet = (document.StyleSheets.GetChildByName(NDR.NameConnectorsStyleSheet, -1) as NStyleSheet);
 
             NTextStyle textStyle = new NTextStyle();
             textStyle.BackplaneStyle.Visible = true;
@@ -149,153 +137,138 @@ namespace VerilogVisualizerTest
             styleSheet.Style.StartArrowheadStyle.StrokeStyle = new NStrokeStyle(1, Color.Black);
             styleSheet.Style.EndArrowheadStyle.StrokeStyle = new NStrokeStyle(1, Color.Black);
 
+            // create a stylesheet for the 2D Shapes
+            styleSheet = new NStyleSheet("SHAPE2D");
+            styleSheet.Style.FillStyle = new NColorFillStyle(Color.PapayaWhip);
+            document.StyleSheets.AddChild(styleSheet);
+
+            // create a stylesheet for the arrows, which inherits from the connectors stylesheet
+            styleSheet = new NStyleSheet("ARROW", NDR.NameConnectorsStyleSheet);
+
+            textStyle = new NTextStyle();
+            textStyle.FontStyle.InitFromFont(new Font("Arial", 8));
+            styleSheet.Style.TextStyle = textStyle;
+
+            document.StyleSheets.AddChild(styleSheet);
+
+            // init form fields
+            //m_Layout = new NOrthogonalGraphLayout();
+            //propertyGrid1.SelectedObject = m_Layout;
+
             InitDocument();
 
-            /*
-            // create the begin shape 
-            NShape begin = factory.CreateShape(FlowChartingShapes.Termination);
-            begin.Bounds = new NRectangleF(100, 100, 100, 100);
-            begin.Text = "BEGIN";
-            nDrawingDocument1.ActiveLayer.AddChild(begin);
-
-            // create the step1 shape
-            NShape step1 = factory.CreateShape(FlowChartingShapes.Process);
-            step1.Bounds = new NRectangleF(100, 400, 100, 100);
-            step1.Text = "STEP1";
-            nDrawingDocument1.ActiveLayer.AddChild(step1);
-
-            // connect begin and step1 with bezier link
-            NBezierCurveShape bezier = new NBezierCurveShape();
-            bezier.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            bezier.Text = "BEZIER";
-            bezier.FirstControlPoint = new NPointF(100, 300);
-            bezier.SecondControlPoint = new NPointF(200, 300);
-            nDrawingDocument1.ActiveLayer.AddChild(bezier);
-            bezier.FromShape = begin;
-            bezier.ToShape = step1;
-
-            // create question1 shape
-            NShape question1 = factory.CreateShape(FlowChartingShapes.Decision);
-            question1.Bounds = new NRectangleF(300, 400, 100, 100);
-            question1.Text = "QUESTION1";
-            nDrawingDocument1.ActiveLayer.AddChild(question1);
-
-            // connect step1 and question1 with line link
-            NLineShape line = new NLineShape();
-            line.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            line.Text = "LINE";
-            nDrawingDocument1.ActiveLayer.AddChild(line);
-            line.FromShape = step1;
-            line.ToShape = question1;
-
-            // create the step2 shape
-            NShape step2 = factory.CreateShape(FlowChartingShapes.Process);
-            step2.Bounds = new NRectangleF(500, 100, 100, 100);
-            step2.Text = "STEP2";
-            nDrawingDocument1.ActiveLayer.AddChild(step2);
-
-            // connect step2 and question1 with HV link
-            NStep2Connector hv1 = new NStep2Connector(false);
-            hv1.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            hv1.Text = "HV1";
-            nDrawingDocument1.ActiveLayer.AddChild(hv1);
-            hv1.FromShape = step2;
-            hv1.ToShape = question1;
-
-            // connect question1 and step2 and with HV link
-            NStep2Connector hv2 = new NStep2Connector(false);
-            hv2.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            hv2.Text = "HV2";
-            nDrawingDocument1.ActiveLayer.AddChild(hv2);
-            hv2.FromShape = question1;
-            hv2.ToShape = step2;
-
-            // create a self loof as bezier on step2
-            NBezierCurveShape selfLoop = new NBezierCurveShape();
-            selfLoop.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            selfLoop.Text = "SELF LOOP";
-            nDrawingDocument1.ActiveLayer.AddChild(selfLoop);
-            selfLoop.FromShape = step2;
-            selfLoop.ToShape = step2;
-            selfLoop.Reflex();
-
-            // create step3 shape
-            NShape step3 = factory.CreateShape(FlowChartingShapes.Process);
-            step3.Bounds = new NRectangleF(700, 600, 100, 100);
-            step3.Text = "STEP3";
-            nDrawingDocument1.ActiveLayer.AddChild(step3);
-
-            // connect question1 and step3 with an HVH link
-            NStep3Connector hvh1 = new NStep3Connector(false, 50, 0, true);
-            hvh1.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            hvh1.Text = "HVH1";
-            nDrawingDocument1.ActiveLayer.AddChild(hvh1);
-            hvh1.FromShape = question1;
-            hvh1.ToShape = step3;
-
-            // create end shape
-            NShape end = factory.CreateShape(FlowChartingShapes.Termination);
-            end.Bounds = new NRectangleF(300, 700, 100, 100);
-            end.Text = "END";
-            nDrawingDocument1.ActiveLayer.AddChild(end);
-
-            // connect step3 and end with VH link
-            NStep2Connector vh1 = new NStep2Connector(true);
-            vh1.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            vh1.Text = "VH1";
-            nDrawingDocument1.ActiveLayer.AddChild(vh1);
-            vh1.FromShape = step3;
-            vh1.ToShape = end;
-
-            // connect question1 and end with curve link (uses explicit ports)
-            NRoutableConnector curve = new NRoutableConnector(RoutableConnectorType.DynamicCurve);
-            curve.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            curve.Text = "CURVE";
-            nDrawingDocument1.ActiveLayer.AddChild(curve);
-            curve.StartPlug.Connect(question1.Ports.GetChildAt(3) as NPort);
-            curve.EndPlug.Connect(end.Ports.GetChildAt(1) as NPort);
-            curve.InsertPoint(1, new NPointF(500, 600));
-            */
-
-
-            // set a shadow to the nDrawingDocument1. Since styles are inheritable all objects will reuse this shadow
-            nDrawingDocument1.Style.ShadowStyle = new NShadowStyle(
-                ShadowType.GaussianBlur,
-                Color.Gray,
-                new NPointL(5, 5),
-                1,
-                new NLength(3));
-            
-            // shadows must be displayed behind document content
-            nDrawingDocument1.ShadowsZOrder = ShadowsZOrder.BehindDocument;
-
             // end nDrawingDocument1 init
-            nDrawingDocument1.EndInit();
+            document.EndInit();
 
             //end view init
             nDrawingView1.EndInit();
-            
 
-            /*
-            // begin view init
-            nDrawingView1.BeginInit();
 
-            nDrawingView1.Grid.Visible = false;
-            nDrawingView1.HorizontalRuler.Visible = false;
-            nDrawingView1.VerticalRuler.Visible = false;
-            nDrawingView1.GlobalVisibility.ShowPorts = true;
 
-            // init document
-            nDrawingDocument1.BeginInit();
-            InitDocument();
-            nDrawingDocument1.EndInit();
-
-            // end view init
-            nDrawingView1.EndInit();
-            */
         }
 
-        
+        private void CreateDiagram()
+        {
+            float width = 70;
+            float height = 70;
+
+            NShape shape1 = CreateInstance(0, 0, width, height, "Input1");
+            shape1.Location = new NPointF(100, 300);
+            NShape shape2 = CreateInstance(0, 0, width, height, "Input2");
+            shape2.Location = new NPointF(100, 600);
+
+            NShape shape3 = CreateInstance(0, 0, width, height, "Sum1");
+            shape3.Location = new NPointF(300, 100);
+            NShape shape4 = CreateInstance(0, 0, width, height, "Sum2");
+            shape4.Location = new NPointF(400, 100);
+            NShape shape5 = CreateInstance(0, 0, width, height, "Sum3");
+            shape5.Location = new NPointF(500, 100);
+            NShape shape6 = CreateInstance(0, 0, width, height, "Sum4");
+            shape6.Location = new NPointF(600, 100);
+
+            NShape shape7 = CreateInstance(0, 0, width, height, "Output1");
+            shape7.Location = new NPointF(800, 450);
+
+            document.ActiveLayer.AddChild(shape1);
+            document.ActiveLayer.AddChild(shape2);
+            document.ActiveLayer.AddChild(shape3);
+            document.ActiveLayer.AddChild(shape4);
+            document.ActiveLayer.AddChild(shape5);
+            document.ActiveLayer.AddChild(shape6);
+            document.ActiveLayer.AddChild(shape7);
+
+
+            NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
+            c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c1.Text = "c1";
+            document.ActiveLayer.AddChild(c1);
+            c1.StartPlug.Connect(shape1.Ports.GetChildByName("OUT", 0) as NPort);
+            c1.EndPlug.Connect(shape3.Ports.GetChildByName("IN1", 0) as NPort);
+
+            NStep3Connector c2 = new NStep3Connector(false, 90, 0, true);
+            c2.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c2.Text = "c2";
+            document.ActiveLayer.AddChild(c2);
+            c2.StartPlug.Connect(shape1.Ports.GetChildByName("OUT", 0) as NPort);
+            c2.EndPlug.Connect(shape4.Ports.GetChildByName("IN1", 0) as NPort);
+
+            NStep3Connector c3 = new NStep3Connector(false, 90, 0, true);
+            c3.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c3.Text = "c3";
+            document.ActiveLayer.AddChild(c3);
+            c3.StartPlug.Connect(shape2.Ports.GetChildByName("OUT", 0) as NPort);
+            c3.EndPlug.Connect(shape4.Ports.GetChildByName("IN1", 0) as NPort);
+
+            NStep3Connector c4 = new NStep3Connector(false, 90, 0, true);
+            c4.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c4.Text = "c4";
+            document.ActiveLayer.AddChild(c4);
+            c4.StartPlug.Connect(shape1.Ports.GetChildByName("CI", 0) as NPort);
+            c4.EndPlug.Connect(shape4.Ports.GetChildByName("IN1", 0) as NPort);
+
+            
+
+        }
+
+        private NShape CreateInstance(float x, float y, float width, float height, string name)
+        {
+            NShape temp = new NRectangleShape(x, y, width, height);
+            temp.Name = name;
+            temp.Text = name;
+
+            temp.CreateShapeElements(ShapeElementsMask.Ports);
+
+            NDynamicPort port = new NDynamicPort(new NContentAlignment(-50, -20), DynamicPortGlueMode.GlueToContour);
+            port.Name = "IN1";
+            temp.Ports.AddChild(port);
+
+            NDynamicPort port1 = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+            port1.Name = "IN2";
+            temp.Ports.AddChild(port1);
+
+            NDynamicPort port2 = new NDynamicPort(new NContentAlignment(-50, 20), DynamicPortGlueMode.GlueToContour);
+            port2.Name = "CI";
+            temp.Ports.AddChild(port2);
+
+            NDynamicPort port3 = new NDynamicPort(new NContentAlignment(50, -20), DynamicPortGlueMode.GlueToContour);
+            port3.Name = "OUT";
+            temp.Ports.AddChild(port3);
+
+            NDynamicPort port4 = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+            port4.Name = "CO";
+            temp.Ports.AddChild(port4);
+
+            return temp;
+        }
+
+        private void InitDocument()
+        {
+            CreateDiagram();
+            //LayoutButton.PerformClick();
+        }
+
+        // drawing group module
+        /*
         private void InitDocument()
         {
             List<NGroup> groups = new List<NGroup>();
@@ -324,7 +297,7 @@ namespace VerilogVisualizerTest
 
 
             // Connect some shapes
-            /*
+            
             NGroup subgroupA1 = (NGroup)groupA.Shapes.GetChildAt(0);
             NShape shapeA1a = (NShape)subgroupA1.Shapes.GetChildAt(0);
             NGroup subgroupA2 = (NGroup)groupA.Shapes.GetChildAt(1);
@@ -334,10 +307,12 @@ namespace VerilogVisualizerTest
             NGroup subgroupB2 = (NGroup)groupB.Shapes.GetChildAt(1);
             NShape shapeB2a = (NShape)subgroupB2.Shapes.GetChildAt(0);
             Connect(shapeA2a, shapeB2a);
-            */
-        }
+            
+    }
 
-        private NGroup CreateGroup(string name, List<Module> subModules)
+
+
+    private NGroup CreateGroup(string name, List<Module> subModules)
         {
             NGroup group = new NGroup();
             group.Name = name;
@@ -494,7 +469,7 @@ namespace VerilogVisualizerTest
             protection.MoveY = move;
             shape.Protection = protection;
         }
-        
+        */
 
     }
 }
