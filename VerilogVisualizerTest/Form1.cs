@@ -223,12 +223,14 @@ namespace VerilogVisualizerTest
             c4.StyleSheetName = NDR.NameConnectorsStyleSheet;
             c4.Text = "c4";
             document.ActiveLayer.AddChild(c4);
-            c4.StartPlug.Connect(shape1.Ports.GetChildByName("CI", 0) as NPort);
+            c4.StartPlug.Connect(shape1.Ports.GetChildByName("IN1", 0) as NPort);
             c4.EndPlug.Connect(shape4.Ports.GetChildByName("IN1", 0) as NPort);
 
             
 
         }
+
+        
 
         private NShape CreateInstance(float x, float y, float width, float height, string name)
         {
@@ -263,213 +265,71 @@ namespace VerilogVisualizerTest
 
         private void InitDocument()
         {
-            CreateDiagram();
-            //LayoutButton.PerformClick();
-        }
-
-        // drawing group module
-        /*
-        private void InitDocument()
-        {
-            List<NGroup> groups = new List<NGroup>();
+            //CreateDiagram();
+            NCompositeShape shape = CreateInstance2(0, 0, 0, 0, "Output1", 3, 0);
             
-            foreach (var mod in Modules)
-            {
-                NGroup group;
-                if (mod.verilogInstances.Count > 0)
-                {
-                    group = CreateGroup(mod.name, mod.verilogInstances);
-                }
-                else
-                {
-                    group = CreateGroup(mod.name);
-                }
-                group.Location = new NPointF(10, 10);
-                nDrawingDocument1.ActiveLayer.AddChild(group);
-                groups.Add(group);
-            }
-
-            // Connections
-            foreach (var mod in Modules)
-            {
-                ;
-            }
 
 
-            // Connect some shapes
-            
-            NGroup subgroupA1 = (NGroup)groupA.Shapes.GetChildAt(0);
-            NShape shapeA1a = (NShape)subgroupA1.Shapes.GetChildAt(0);
-            NGroup subgroupA2 = (NGroup)groupA.Shapes.GetChildAt(1);
-            NShape shapeA2a = (NShape)subgroupA2.Shapes.GetChildAt(0);
-            Connect(shapeA1a, shapeA2a);
-
-            NGroup subgroupB2 = (NGroup)groupB.Shapes.GetChildAt(1);
-            NShape shapeB2a = (NShape)subgroupB2.Shapes.GetChildAt(0);
-            Connect(shapeA2a, shapeB2a);
-            
-    }
-
-
-
-    private NGroup CreateGroup(string name, List<Module> subModules)
-        {
-            NGroup group = new NGroup();
-            group.Name = name;
-
-            foreach (var mod in subModules)
-            {
-                NGroup subGroup;
-                if (mod.verilogInstances.Count > 0)
-                {
-                    subGroup = CreateSubgroup(mod.name, mod.verilogInstances);
-                }
-                else
-                {
-                    subGroup = CreateSubgroup(mod.name);
-                }
-                    
-                //subGroup.Location = new NPointF(0, 0);
-                group.Shapes.AddChild(subGroup);
-            }
-            
-            // Create the decorators
-            CreateDecorators(group, group.Name + " Decorators");
-
-            // Update the model bounds so that the subgroups are inside the specified padding
-            group.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
-            group.UpdateModelBounds();
-            group.AutoUpdateModelBounds = true;
-
-            ApplyProtections(group, true, false);
-            return group;
-        }
-
-        private NGroup CreateGroup(string name)
-        {
-            NGroup group = new NGroup();
-            group.Name = name;
-
-            NShape shape = CreateShape(name + "(Not subgroup)");
-            //shape.Location = new NPointF(0, 0);
-            group.Shapes.AddChild(shape);
-
-            // Create the decorators
-            CreateDecorators(group, group.Name + " Group");
-
-            // Update the model bounds so that the subgroups are inside the specified padding
-            group.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
-            group.UpdateModelBounds();
-            group.AutoUpdateModelBounds = true;
-
-            ApplyProtections(group, true, false);
-            return group;
-        }
-
-        private NGroup CreateSubgroup(string name)
-        {
-            NGroup subgroup = new NGroup();
-            subgroup.Name = name;
-
-            NShape shape1 = CreateShape(name + "shape");
-            //shape1.Location = new NPointF(0, 0);
-            subgroup.Shapes.AddChild(shape1);
-
-            // Create the decorators
-            CreateDecorators(subgroup, subgroup.Name + " Subgroup");
-
-            // Update the model bounds so that the shapes are inside the specified padding
-            subgroup.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
-            subgroup.UpdateModelBounds();
-
-            ApplyProtections(subgroup, true, true);
-            return subgroup;
-        }
-
-        private NGroup CreateSubgroup(string name, List<Module> subModules)
-        {
-            NGroup subgroup = new NGroup();
-            subgroup.Name = name;
-
-            foreach (var mod in subModules)
-            {
-                NGroup subGroup;
-                if (mod.verilogInstances.Count > 0)
-                    subGroup = CreateSubgroup(mod.name, mod.verilogInstances);
-                else
-                    subGroup = CreateSubgroup(mod.name);
-                //subGroup.Location = new NPointF(0, 0);
-                subgroup.Shapes.AddChild(subGroup);
-            }
-
-            // Create 2 shapes
-            NShape shape1 = CreateShape(name + "shape");
-            shape1.Location = new NPointF(0, 0);
-            subgroup.Shapes.AddChild(shape1);
-
-            // Create the decorators
-            CreateDecorators(subgroup, subgroup.Name + " Subgroup");
-
-            // Update the model bounds so that the shapes are inside the specified padding
-            subgroup.Padding = new Nevron.Diagram.NMargins(5, 5, 30, 5);
-            subgroup.UpdateModelBounds();
-
-            ApplyProtections(subgroup, true, true);
-            return subgroup;
-        }
-
-
-        private NShape CreateShape(string name)
-        {
-            NShape shape = new NRectangleShape(0, 0, 100, 100);
-            shape.Name = name;
-            shape.Text = name + " Node";
-
-            // Create a center port
             shape.CreateShapeElements(ShapeElementsMask.Ports);
-            NDynamicPort port = new NDynamicPort(new NContentAlignment(0, 0), DynamicPortGlueMode.GlueToContour);
-            shape.Ports.AddChild(port);
 
-            ApplyProtections(shape, true, true);
-            return shape;
+            NDynamicPort port0 = new NDynamicPort(new NContentAlignment(-50, -20), DynamicPortGlueMode.GlueToContour);
+            port0.Name = "IN1";
+            shape.Ports.AddChild(port0);
+
+            NDynamicPort port1 = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+            port1.Name = "IN2";
+            shape.Ports.AddChild(port1);
+
+            NDynamicPort port2 = new NDynamicPort(new NContentAlignment(-50, 20), DynamicPortGlueMode.GlueToContour);
+            port2.Name = "CI";
+            shape.Ports.AddChild(port2);
+
+            NDynamicPort port3 = new NDynamicPort(new NContentAlignment(50, -20), DynamicPortGlueMode.GlueToContour);
+            port3.Name = "OUT";
+            shape.Ports.AddChild(port3);
+
+            NDynamicPort port4 = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+            port4.Name = "CO";
+            shape.Ports.AddChild(port4);
+
+            //shape.Location = new NPointF(50, 50);
+
+            document.ActiveLayer.AddChild(shape);
         }
 
-        private void CreateDecorators(NShape shape, string decoratorText)
+        private NCompositeShape CreateInstance2(float x, float y, int width, int height, string name,
+            int inPortCnt, int outPortCnt)
         {
-            // Create the decorators
-            shape.CreateShapeElements(ShapeElementsMask.Decorators);
+            double nWidth = 100, nHeight = 100;
+            double iNpWidth = 0, iNpHeight = 0;
 
-            // Create a frame decorator
-            // We want the user to be able to select the shape when the frame is hit
-            NFrameDecorator frameDecorator = new NFrameDecorator();
-            frameDecorator.ShapeHitTestable = true;
-            frameDecorator.Header.Margins = new Nevron.Diagram.NMargins(20, 0, 0, 0);
-            frameDecorator.Header.Text = decoratorText;
-            shape.Decorators.AddChild(frameDecorator);
+            iNpWidth = ((nWidth - (nWidth * 0.1))/(double)inPortCnt)/3;
 
-            // Create an expand/collapse decorator
-            NExpandCollapseDecorator decorator = new NExpandCollapseDecorator();
-            shape.Decorators.AddChild(decorator);
+            NCompositeShape instance = new NCompositeShape();
+
+            // create node
+            NRectanglePath node = new NRectanglePath(0, 0, (int)nWidth, (int)nHeight);
+            instance.Primitives.AddChild(node);
+
+            // create and add ports
+            for (int i = 0; i < inPortCnt; i++)
+            {
+                NPolygonPath port = new NPolygonPath(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(iNpWidth * 1.5) , 0),
+                new NPointF((int)(iNpWidth * 2), (int)(iNpWidth / 2)),
+                new NPointF((int)(iNpWidth * 1.5) , (int)(iNpWidth)),
+                new NPointF(0, (int)(iNpWidth))
+                });
+
+                instance.Primitives.AddChild(port);
+                port.Location = new NPointF((int)(port.Width/(-2)), (int)((nWidth * 0.1) + ((nWidth/inPortCnt)*i)));
+            }
+
+            
+
+            return instance;
         }
-
-        private void Connect(NShape shape1, NShape shape2)
-        {
-            NLineShape line = new NLineShape();
-            nDrawingDocument1.ActiveLayer.AddChild(line);
-            line.StyleSheetName = "Connectors";
-            line.FromShape = shape1;
-            line.ToShape = shape2;
-        }
-
-        private void ApplyProtections(NShape shape, bool trackersEdit, bool move)
-        {
-            NAbilities protection = shape.Protection;
-            protection.TrackersEdit = trackersEdit;
-            protection.MoveX = move;
-            protection.MoveY = move;
-            shape.Protection = protection;
-        }
-        */
+        
 
     }
 }
