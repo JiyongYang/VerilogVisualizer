@@ -70,7 +70,7 @@ namespace VerilogVisualizerTest
                         foreach (var ele in node.Elements("Port"))
                         {
                             //Console.WriteLine(ele.Attribute("name").Value);
-                            Port pt = new Port(ele.Attribute("type").Value == "In" ? Type.IN : Type.OUT, ele.Attribute("name").Value);
+                            Port pt = new Port(ele.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, ele.Attribute("name").Value);
                             temp.Ports.Add(pt);
                         }
                         break;
@@ -172,6 +172,8 @@ namespace VerilogVisualizerTest
             float width = 70;
             float height = 70;
 
+            
+
             NShape shape1 = CreateInstance(0, 0, width, height, "Input1");
             shape1.Location = new NPointF(100, 300);
             NShape shape2 = CreateInstance(0, 0, width, height, "Input2");
@@ -234,6 +236,8 @@ namespace VerilogVisualizerTest
 
         private NShape CreateInstance(float x, float y, float width, float height, string name)
         {
+            
+
             NShape temp = new NRectangleShape(x, y, width, height);
             temp.Name = name;
             temp.Text = name;
@@ -265,71 +269,177 @@ namespace VerilogVisualizerTest
 
         private void InitDocument()
         {
-            //CreateDiagram();
-            NCompositeShape shape = CreateInstance2(0, 0, 0, 0, "Output1", 3, 0);
-            
+            double scale = 1.5;
 
+            NGroup shape = CreateInstance2(0, 0, 0, 0, "Sum1", 3, 2);
+            shape.Location = new NPointF(200, 100);
+            shape.Width = shape.Width * (float)scale;
+            shape.Height = shape.Height * (float)scale;
 
-            shape.CreateShapeElements(ShapeElementsMask.Ports);
+            NGroup shape2 = CreateInstance2(0, 0, 0, 0, "Sum2", 2, 3);
+            shape2.Location = new NPointF(500, 100);
+            shape2.Width = shape2.Width * (float)scale;
+            shape2.Height = shape2.Height * (float)scale;
 
-            NDynamicPort port0 = new NDynamicPort(new NContentAlignment(-50, -20), DynamicPortGlueMode.GlueToContour);
-            port0.Name = "IN1";
-            shape.Ports.AddChild(port0);
+            NGroup shape3 = CreateInstance2(0, 0, 0, 0, "Sum3", 2, 2);
+            shape3.Location = new NPointF(200, 500);
+            shape3.Width = shape3.Width * (float)scale;
+            shape3.Height = shape3.Height * (float)scale;
 
-            NDynamicPort port1 = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
-            port1.Name = "IN2";
-            shape.Ports.AddChild(port1);
-
-            NDynamicPort port2 = new NDynamicPort(new NContentAlignment(-50, 20), DynamicPortGlueMode.GlueToContour);
-            port2.Name = "CI";
-            shape.Ports.AddChild(port2);
-
-            NDynamicPort port3 = new NDynamicPort(new NContentAlignment(50, -20), DynamicPortGlueMode.GlueToContour);
-            port3.Name = "OUT";
-            shape.Ports.AddChild(port3);
-
-            NDynamicPort port4 = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
-            port4.Name = "CO";
-            shape.Ports.AddChild(port4);
-
-            //shape.Location = new NPointF(50, 50);
+            NShape Inport1 = CreatePort("Input1", PortType.IN, 40, 40, new NPointF(50, 300));
+            NShape Inport2 = CreatePort("Input2", PortType.IN, 40, 40, new NPointF(50, 400));
+            NShape Outport1 = CreatePort("Output1", PortType.OUT, 40, 40, new NPointF(700, 350));
 
             document.ActiveLayer.AddChild(shape);
+            document.ActiveLayer.AddChild(shape2);
+            document.ActiveLayer.AddChild(shape3);
+            document.ActiveLayer.AddChild(Inport1);
+            document.ActiveLayer.AddChild(Inport2);
+            document.ActiveLayer.AddChild(Outport1);
+
+            NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
+            c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c1.Text = "c1";
+            document.ActiveLayer.AddChild(c1);
+            c1.StartPlug.Connect(Inport1.Ports.GetChildByName("Input1", 0) as NPort);
+            c1.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("IN1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c2 = new NStep3Connector(false, 90, 0, true);
+            c2.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c2.Text = "c2";
+            document.ActiveLayer.AddChild(c2);
+            c2.StartPlug.Connect(Inport1.Ports.GetChildByName("Input1", 0) as NPort);
+            c2.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("IN1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c3 = new NStep3Connector(false, 70, 0, true);
+            c3.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c3.Text = "c3";
+            document.ActiveLayer.AddChild(c3);
+            c3.StartPlug.Connect(Inport2.Ports.GetChildByName("Input2", 0) as NPort);
+            c3.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("IN2", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c4 = new NStep3Connector(false, 70, 0, true);
+            c4.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c4.Text = "c4";
+            document.ActiveLayer.AddChild(c4);
+            c4.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c4.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("IN0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c5 = new NStep3Connector(false, 20, 0, true);
+            c5.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c5.Text = "c5";
+            document.ActiveLayer.AddChild(c5);
+            c5.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c5.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1", 0) as NPort);
+
         }
 
-        private NCompositeShape CreateInstance2(float x, float y, int width, int height, string name,
+        private NGroup CreateInstance2(float x, float y, int width, int height, string name,
             int inPortCnt, int outPortCnt)
         {
             double nWidth = 100, nHeight = 100;
-            double iNpWidth = 0, iNpHeight = 0;
+            double innerInputPortWidth = 0, innerOutputPortWidth = 0;
 
-            iNpWidth = ((nWidth - (nWidth * 0.1))/(double)inPortCnt)/3;
+            innerInputPortWidth = ((nWidth - (nWidth * 0.1))/(double)inPortCnt)/3;
+            innerOutputPortWidth = ((nWidth - (nWidth * 0.1))/(double)outPortCnt)/3;
 
-            NCompositeShape instance = new NCompositeShape();
+            //NCompositeShape instance = new NCompositeShape();
+
+
+            NGroup group = new NGroup();
 
             // create node
-            NRectanglePath node = new NRectanglePath(0, 0, (int)nWidth, (int)nHeight);
-            instance.Primitives.AddChild(node);
+            NRectangleShape node = new NRectangleShape(0, 0, (int)nWidth, (int)nHeight);
+            node.Text = name;
+            group.Shapes.AddChild(node);
 
-            // create and add ports
+            // create and add input ports
             for (int i = 0; i < inPortCnt; i++)
             {
-                NPolygonPath port = new NPolygonPath(new NPointF[] { new NPointF(0, 0),
-                new NPointF((int)(iNpWidth * 1.5) , 0),
-                new NPointF((int)(iNpWidth * 2), (int)(iNpWidth / 2)),
-                new NPointF((int)(iNpWidth * 1.5) , (int)(iNpWidth)),
-                new NPointF(0, (int)(iNpWidth))
+                string portName = "IN" + i;
+
+
+                NPolygonShape port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(innerInputPortWidth * 1.5) , 0),
+                new NPointF((int)(innerInputPortWidth * 2), (int)(innerInputPortWidth / 2)),
+                new NPointF((int)(innerInputPortWidth * 1.5) , (int)(innerInputPortWidth)),
+                new NPointF(0, (int)(innerInputPortWidth))
                 });
 
-                instance.Primitives.AddChild(port);
+                port.Name = portName;
+                port.Text = portName;
+
+
+                group.Shapes.AddChild(port);
                 port.Location = new NPointF((int)(port.Width/(-2)), (int)((nWidth * 0.1) + ((nWidth/inPortCnt)*i)));
+
+                port.CreateShapeElements(ShapeElementsMask.Ports);
+
+                NDynamicPort portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+                portInner.Name = "IN";
+                port.Ports.AddChild(portInner);
             }
 
-            
 
-            return instance;
+            // create and add input ports
+            for (int i = 0; i < outPortCnt; i++)
+            {
+                string portName = "OUT" + i;
+
+
+                NPolygonShape port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(innerOutputPortWidth * 1.5) , 0),
+                new NPointF((int)(innerOutputPortWidth * 2), (int)(innerOutputPortWidth / 2)),
+                new NPointF((int)(innerOutputPortWidth * 1.5) , (int)(innerOutputPortWidth)),
+                new NPointF(0, (int)(innerOutputPortWidth))
+                });
+
+                port.Name = portName;
+                port.Text = portName;
+
+                group.Shapes.AddChild(port);
+                port.Location = new NPointF((int)(port.Width / (-2)) + (int)nWidth, (int)((nWidth * 0.1) + ((nWidth / outPortCnt) * i)));
+
+                port.CreateShapeElements(ShapeElementsMask.Ports);
+
+                NDynamicPort portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+                portInner.Name = "OUT";
+                port.Ports.AddChild(portInner);
+            }
+
+            group.UpdateModelBounds();
+
+
+            return group;
         }
         
+        private NShape CreatePort(string name, PortType type, int width, int height, NPointF location)
+        {
+            NShape port;
 
+            port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(width * 1.5) , 0),
+                new NPointF((int)(width * 2), (int)(width / 2)),
+                new NPointF((int)(width * 1.5) , (int)(width)),
+                new NPointF(0, (int)(width))
+                });
+
+            port.Name = name;
+            port.Text = name;
+
+            port.CreateShapeElements(ShapeElementsMask.Ports);
+
+            NDynamicPort portInner;
+            if (type == PortType.IN)
+                portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+            else
+                portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+            portInner.Name = name;
+            port.Ports.AddChild(portInner);
+
+            port.Location = location;
+
+            return port;
+        }
     }
 }

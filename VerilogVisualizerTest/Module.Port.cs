@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace VerilogVisualizerTest
 {
-    public enum Type { IN, OUT };
+    public enum PortType { IN, OUT };
 
     public class Port
     {
-        private Type type;
+        private PortType type;
         private string name;
 
-        public Type Type
+        public PortType Type
         {
             get { return type; }
         }
@@ -23,7 +23,7 @@ namespace VerilogVisualizerTest
             get { return name; }
         }
 
-        public Port(Type t1, string name)
+        public Port(PortType t1, string name)
         {
             this.type = t1;
             this.name = name;
