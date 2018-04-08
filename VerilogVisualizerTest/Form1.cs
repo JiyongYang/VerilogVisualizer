@@ -117,7 +117,7 @@ namespace VerilogVisualizerTest
             nDrawingView1.Grid.Visible = false;
 
             // fit the document in the viewport 
-            nDrawingView1.ViewLayout = ViewLayout.Fit;
+            nDrawingView1.ViewLayout = ViewLayout.Normal;
 
             // apply padding to the document bounds
             nDrawingView1.DocumentPadding = new Nevron.Diagram.NMargins(10);
@@ -167,12 +167,14 @@ namespace VerilogVisualizerTest
 
         }
 
+
+
+        /*
         private void CreateDiagram()
         {
             float width = 70;
             float height = 70;
 
-            
 
             NShape shape1 = CreateInstance(0, 0, width, height, "Input1");
             shape1.Location = new NPointF(100, 300);
@@ -228,15 +230,15 @@ namespace VerilogVisualizerTest
             c4.StartPlug.Connect(shape1.Ports.GetChildByName("IN1", 0) as NPort);
             c4.EndPlug.Connect(shape4.Ports.GetChildByName("IN1", 0) as NPort);
 
-            
+
 
         }
+        */
 
-        
-
+        /*
         private NShape CreateInstance(float x, float y, float width, float height, string name)
         {
-            
+
 
             NShape temp = new NRectangleShape(x, y, width, height);
             temp.Name = name;
@@ -266,8 +268,52 @@ namespace VerilogVisualizerTest
 
             return temp;
         }
+        */
+
+
 
         private void InitDocument()
+        {
+            List<NGroup> instanceList = new List<NGroup>();
+
+            NGroup Inport1 = CreateGlobalPort("Input1", PortType.IN);
+            NGroup Inport2 = CreateGlobalPort("Input2", PortType.IN);
+            NGroup Outport1 = CreateGlobalPort("Output1asdfasdfasdf", PortType.OUT);
+
+            Inport1.Location = new NPointF(50, 200);
+            Inport2.Location = new NPointF(50, 300);
+            Outport1.Location = new NPointF(700, 250);
+
+            document.ActiveLayer.AddChild(Inport1);
+            document.ActiveLayer.AddChild(Inport2);
+            document.ActiveLayer.AddChild(Outport1);
+
+            NGroup shape = CreateInstance("Sum1", randomPortGen());
+            //shape.Location = new NPointF(200, 100);
+            document.ActiveLayer.AddChild(shape);
+            instanceList.Add(shape);
+
+            NGroup shape1 = CreateInstance("Sum2", randomPortGen());
+            //shape1.Location = new NPointF(200, 300);
+            document.ActiveLayer.AddChild(shape1);
+            instanceList.Add(shape1);
+
+            NGroup shape2 = CreateInstance("Sum3", randomPortGen());
+            //shape2.Location = new NPointF(500, 100);
+            document.ActiveLayer.AddChild(shape2);
+            instanceList.Add(shape2);
+
+            NGroup shape3 = CreateInstance("Sum4", randomPortGen());
+            //shape3.Location = new NPointF(500, 300);
+            document.ActiveLayer.AddChild(shape3);
+            instanceList.Add(shape3);
+
+            document.SizeToContent();
+        }
+
+        //private void setInstancesPos(List<Port> )
+
+        private void InitDocument2()
         {
             double scale = 1.5;
 
@@ -286,9 +332,9 @@ namespace VerilogVisualizerTest
             shape3.Width = shape3.Width * (float)scale;
             shape3.Height = shape3.Height * (float)scale;
 
-            NShape Inport1 = CreatePort("Input1", PortType.IN, 40, 40, new NPointF(50, 300));
-            NShape Inport2 = CreatePort("Input2", PortType.IN, 40, 40, new NPointF(50, 400));
-            NShape Outport1 = CreatePort("Output1", PortType.OUT, 40, 40, new NPointF(700, 350));
+            NShape Inport1 = CreateGlobalPort("Input1", PortType.IN);
+            NShape Inport2 = CreateGlobalPort("Input2", PortType.IN);
+            NShape Outport1 = CreateGlobalPort("Output1asdfasdfasdf", PortType.OUT);
 
             document.ActiveLayer.AddChild(shape);
             document.ActiveLayer.AddChild(shape2);
@@ -296,6 +342,10 @@ namespace VerilogVisualizerTest
             document.ActiveLayer.AddChild(Inport1);
             document.ActiveLayer.AddChild(Inport2);
             document.ActiveLayer.AddChild(Outport1);
+
+            Inport1.Location = new NPointF(50, 300);
+            Inport2.Location = new NPointF(50, 400);
+            Outport1.Location = new NPointF(700, 350);
 
             NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
             c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
@@ -332,6 +382,119 @@ namespace VerilogVisualizerTest
             c5.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
             c5.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1", 0) as NPort);
 
+
+            document.SizeToContent();
+        }
+
+        private NGroup CreateInstance(string name, List<Port> ports)
+        {
+            int instanceWidth = 50;
+            int instanceHeight = 50;
+
+            int InputMaxSize = 10;
+            int InputCnt = 0;
+            int OutputMaxSize = 10;
+            int OutputCnt = 0;
+
+            int offsetWidth = 5;
+            int offsetHeight = 30;
+            int widthPadding = 10;
+            int heightPadding = 10;
+
+            int textWidth = 30;
+            int textHeight = 15;
+
+            int curInPtCnt = 0;
+            int curOutPtCnt = 0;
+
+            NGroup group = new NGroup();
+
+            // find max input/output port size
+            for (int i = 0; i < ports.Count; i++)
+            {
+                if (ports[i].Type == PortType.IN)
+                {
+                    InputCnt += 1;
+                    if (InputMaxSize < ports[i].Name.Length)
+                        InputMaxSize = ports[i].Name.Length;
+                }
+                else
+                {
+                    OutputCnt += 1;
+                    if (OutputMaxSize < ports[i].Name.Length)
+                        OutputMaxSize = ports[i].Name.Length;
+                }
+            }
+
+            instanceWidth = (InputMaxSize * offsetWidth) + (OutputMaxSize * offsetWidth) + widthPadding;
+            instanceHeight = (InputCnt > OutputCnt ? InputCnt : OutputCnt) * offsetHeight + heightPadding;
+
+            textWidth = instanceWidth;
+
+            // Add Instance
+            NRectangleShape node = new NRectangleShape(0, 0, (int)instanceWidth, (int)instanceHeight);
+            node.Name = name;
+            group.Shapes.AddChild(node);
+
+            NTextShape nodeName = new NTextShape(name, 0, -15, textWidth, textHeight);
+            nodeName.Style.TextStyle = new NTextStyle();
+            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 7));
+            group.Shapes.AddChild(nodeName);
+
+            // Add Port
+
+            for (int i = 0; i < ports.Count; i++)
+            {
+                NShape port = createPort(ports[i].Name, ports[i].Type);
+                group.Shapes.AddChild(port);
+                if (ports[i].Type == PortType.IN)
+                {
+                    curInPtCnt += 1;
+                    port.Location = new NPointF(-port.Bounds.Width/2, (node.Bounds.Height / (InputCnt+1)) * curInPtCnt);
+
+                    NTextShape portName = new NTextShape(ports[i].Name,
+                        port.Bounds.Width / 2, (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt,
+                        ports[i].Name.Length * 5, port.Bounds.Height);
+                    portName.Style.TextStyle = new NTextStyle();
+                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 6));
+                    portName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Left;
+                    group.Shapes.AddChild(portName);
+                }
+                else
+                {
+                    curOutPtCnt += 1;
+                    port.Location = new NPointF((-port.Bounds.Width / 2) + node.Bounds.Width, (node.Bounds.Height / (OutputCnt+1)) * curOutPtCnt);
+
+                    NTextShape portName = new NTextShape(ports[i].Name,
+                        node.Bounds.Width - (port.Bounds.Width / 2) - (ports[i].Name.Length * 5), (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt,
+                        ports[i].Name.Length * 5, port.Bounds.Height);
+                    portName.Style.TextStyle = new NTextStyle();
+                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 6));
+                    portName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Right;
+                    group.Shapes.AddChild(portName);
+                }
+                    
+
+
+                port.CreateShapeElements(ShapeElementsMask.Ports);
+
+                NDynamicPort portInner;
+                if (ports[i].Type == PortType.IN)
+                {
+                    portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+                    portInner.Name = "IN";
+                }
+                else
+                {
+                    portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+                    portInner.Name = "OUT";
+                }
+                port.Ports.AddChild(portInner);
+            }
+
+            group.UpdateModelBounds();
+
+            return group;
         }
 
         private NGroup CreateInstance2(float x, float y, int width, int height, string name,
@@ -340,8 +503,8 @@ namespace VerilogVisualizerTest
             double nWidth = 100, nHeight = 100;
             double innerInputPortWidth = 0, innerOutputPortWidth = 0;
 
-            innerInputPortWidth = ((nWidth - (nWidth * 0.1))/(double)inPortCnt)/3;
-            innerOutputPortWidth = ((nWidth - (nWidth * 0.1))/(double)outPortCnt)/3;
+            innerInputPortWidth = ((nWidth - (nWidth * 0.1)) / (double)inPortCnt) / 3;
+            innerOutputPortWidth = ((nWidth - (nWidth * 0.1)) / (double)outPortCnt) / 3;
 
             //NCompositeShape instance = new NCompositeShape();
 
@@ -371,7 +534,7 @@ namespace VerilogVisualizerTest
 
 
                 group.Shapes.AddChild(port);
-                port.Location = new NPointF((int)(port.Width/(-2)), (int)((nWidth * 0.1) + ((nWidth/inPortCnt)*i)));
+                port.Location = new NPointF((int)(port.Width / (-2)), (int)((nWidth * 0.1) + ((nWidth / inPortCnt) * i)));
 
                 port.CreateShapeElements(ShapeElementsMask.Ports);
 
@@ -409,19 +572,23 @@ namespace VerilogVisualizerTest
 
             group.UpdateModelBounds();
 
-
             return group;
         }
-        
-        private NShape CreatePort(string name, PortType type, int width, int height, NPointF location)
+
+        private NShape CreateGlobalPort(string name, PortType type, int width, int height, NPointF location)
         {
+            int sizeOfPort = 0;
+
+            sizeOfPort = name.Length * 5;
+            //width = sizeOfPort;
+
             NShape port;
 
             port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
                 new NPointF((int)(width * 1.5) , 0),
-                new NPointF((int)(width * 2), (int)(width / 2)),
-                new NPointF((int)(width * 1.5) , (int)(width)),
-                new NPointF(0, (int)(width))
+                new NPointF((int)(width * 1.5 + 20), (int)(height / 2)),
+                new NPointF((int)(width * 1.5) , (int)(height)),
+                new NPointF(0, (int)(height))
                 });
 
             port.Name = name;
@@ -440,6 +607,128 @@ namespace VerilogVisualizerTest
             port.Location = location;
 
             return port;
+        }
+
+        private NGroup CreateGlobalPort(string name, PortType type)
+        {
+            int width = 10;
+            int height = 10;
+
+            NGroup group = new NGroup();
+
+            NShape port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(width * 1.5) , 0),
+                new NPointF((int)(width * 1.5 + 10), (int)(height / 2)),
+                new NPointF((int)(width * 1.5) , (int)(height)),
+                new NPointF(0, (int)(height))
+                });
+
+            group.Shapes.AddChild(port);
+
+            port.Name = name;
+            
+            port.CreateShapeElements(ShapeElementsMask.Ports);
+
+            NDynamicPort portInner;
+            if (type == PortType.IN)
+                portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+            else
+                portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+            portInner.Name = name;
+            port.Ports.AddChild(portInner);
+
+            NTextShape nodeName;
+            if (type == PortType.IN)
+            {
+                nodeName = new NTextShape(name, -(name.Length * 5), 0, name.Length * 5, height);
+            }
+            else
+            {
+                nodeName = new NTextShape(name, port.Bounds.Width, 0, name.Length * 5, height);
+            }
+            nodeName.Style.TextStyle = new NTextStyle();
+            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 7));
+            group.Shapes.AddChild(nodeName);
+
+            group.UpdateModelBounds();
+
+            return group;
+        }
+
+        private NShape createPort(string name, PortType type)
+        {
+            int width = 10;
+            int height = 10;
+
+            NShape port;
+
+            port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
+                new NPointF((int)(width * 1.5) , 0),
+                new NPointF((int)(width * 1.5 + 10), (int)(height / 2)),
+                new NPointF((int)(width * 1.5) , (int)(height)),
+                new NPointF(0, (int)(height))
+                });
+
+            port.Name = name;
+
+            port.CreateShapeElements(ShapeElementsMask.Ports);
+
+            NDynamicPort portInner;
+            if (type == PortType.IN)
+                portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
+            else
+                portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
+            portInner.Name = name;
+            port.Ports.AddChild(portInner);
+
+
+            return port;
+        }
+
+        private List<Port> randomPortGen()
+        {
+            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
+
+            List<Port> temp = new List<Port>();
+
+            for (int i = 0; i < r.Next(2, 10); i++)
+            {
+                temp.Add(new Port(PortType.IN, "InPt" + i));
+            }
+
+            for (int i = 0; i < r.Next(2, 10); i++)
+            {
+                temp.Add(new Port(PortType.OUT, "OutPt" + i));
+            }
+
+            return temp;
+        }
+
+        private List<Port> randomPortGen_ranStr()
+        {
+            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
+
+            List<Port> temp = new List<Port>();
+
+            for (int i = 0; i < r.Next(0, 10); i++)
+            {
+                temp.Add(new Port(PortType.IN, "InPt" + RandomString(new Random(new System.DateTime().Millisecond).Next(0, 10), r)));
+            }
+
+            for (int i = 0; i < r.Next(0, 10); i++)
+            {
+                temp.Add(new Port(PortType.OUT, "OutPt" + RandomString(new Random(new System.DateTime().Millisecond).Next(0, 10), r)));
+            }
+
+            return temp;
+        }
+
+        private static string RandomString(int length, Random r)
+        {
+            const string pool = "abcdefghijklmnopqrstuvwxyz0123456789";
+            var chars = Enumerable.Range(0, length)
+                .Select(x => pool[r.Next(0, pool.Length)]);
+            return new string(chars.ToArray());
         }
     }
 }
