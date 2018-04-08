@@ -282,7 +282,7 @@ namespace VerilogVisualizerTest
 
             Inport1.Location = new NPointF(50, 200);
             Inport2.Location = new NPointF(50, 300);
-            Outport1.Location = new NPointF(700, 250);
+            Outport1.Location = new NPointF(900, 250);
 
             document.ActiveLayer.AddChild(Inport1);
             document.ActiveLayer.AddChild(Inport2);
@@ -308,10 +308,27 @@ namespace VerilogVisualizerTest
             document.ActiveLayer.AddChild(shape3);
             instanceList.Add(shape3);
 
+            setInstancesPos(instanceList);
+
             document.SizeToContent();
         }
 
-        //private void setInstancesPos(List<Port> )
+        private void setInstancesPos(List<NGroup> gList)
+        {
+            int xInsPos = 200;
+            int yInsPos = 100;
+
+            for (int i = 0; i < gList.Count; i++)
+            {
+                gList[i].Location = new NPointF(xInsPos, yInsPos);
+                xInsPos += (int)gList[i].Bounds.Width + 100;
+                if((i+1)%3 == 0 && i != 0)
+                {
+                    yInsPos += yInsPos + (int)gList[i-2].Bounds.Height + 100;
+                    xInsPos = 200;
+                }
+            }
+        }
 
         private void InitDocument2()
         {
