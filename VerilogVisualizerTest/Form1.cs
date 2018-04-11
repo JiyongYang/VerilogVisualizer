@@ -309,6 +309,129 @@ namespace VerilogVisualizerTest
             instanceList.Add(shape3);
 
             setInstancesPos(instanceList);
+            /*
+            NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
+            c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c1.Text = "c1";
+            document.ActiveLayer.AddChild(c1);
+            c1.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c1.EndPlug.Connect(((NShape)(shape1.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c2 = new NStep3Connector(false, 80, 0, true);
+            c2.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c2.Text = "c2";
+            document.ActiveLayer.AddChild(c2);
+            c2.StartPlug.Connect(((NShape)(shape1.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c2.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c3 = new NStep3Connector(false, 90, 0, true);
+            c3.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c3.Text = "c3";
+            document.ActiveLayer.AddChild(c3);
+            c3.StartPlug.Connect(((NShape)(shape3.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c3.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c4 = new NStep3Connector(false, 50, 0, true);
+            c4.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c4.Text = "c4";
+            document.ActiveLayer.AddChild(c4);
+            c4.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c4.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c5 = new NStep3Connector(false, 50, 0, true);
+            c5.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c5.Text = "c5";
+            document.ActiveLayer.AddChild(c5);
+            c5.StartPlug.Connect(((NShape)(Inport1.Shapes.GetChildByName("Input1", 0))).Ports.GetChildByName("Input1", 0) as NPort);
+            c5.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("InPt1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            //c5.StartPlug.Connect(Inport1.Ports.GetChildByName("Input1", 0) as NPort);
+
+            NStep3Connector c6 = new NStep3Connector(false, 50, 0, true);
+            c6.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c6.Text = "c6";
+            document.ActiveLayer.AddChild(c6);
+            c6.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c6.EndPlug.Connect(((NShape)(shape3.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+
+            NStep3Connector c7 = new NStep3Connector(false, 20, 0, true);
+            c7.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            c7.Text = "c7";
+            document.ActiveLayer.AddChild(c7);
+            c7.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            c7.EndPlug.Connect(((NShape)(Outport1.Shapes.GetChildByName("Output1asdfasdfasdf", 0))).Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
+            //c7.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
+            */
+            NRoutableConnector routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(Outport1.Shapes.GetChildByName("Output1asdfasdfasdf", 0))).Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape3.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(Inport1.Shapes.GetChildByName("Input1", 0))).Ports.GetChildByName("Input1", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("InPt1", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt1", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape3.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
+
+            routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+            document.ActiveLayer.AddChild(routableConnector);
+
+            routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
+            routableConnector.EndPlug.Connect(((NShape)(shape1.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
+            routableConnector.Reroute();
 
             document.SizeToContent();
         }
@@ -364,7 +487,11 @@ namespace VerilogVisualizerTest
             Inport2.Location = new NPointF(50, 400);
             Outport1.Location = new NPointF(700, 350);
 
-            NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
+            
+
+
+
+            /*NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
             c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
             c1.Text = "c1";
             document.ActiveLayer.AddChild(c1);
@@ -397,7 +524,7 @@ namespace VerilogVisualizerTest
             c5.Text = "c5";
             document.ActiveLayer.AddChild(c5);
             c5.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
-            c5.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1", 0) as NPort);
+            c5.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1", 0) as NPort);*/
 
 
             document.SizeToContent();
