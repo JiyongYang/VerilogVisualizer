@@ -25,14 +25,16 @@ namespace VerilogVisualizerTest
 {
     public partial class Form1 : Form
     {
-        public List<Module> Modules;
+        public Module topModule;
+        public Dictionary<string, Module> ModulePool;
         //private NOrthogonalGraphLayout m_Layout;
 
         public Form1()
         {
             InitializeComponent();
 
-            Modules = new List<Module>();
+            //topModule = new Module("TopModule");
+            ModulePool = new Dictionary<string, Module>();
 
             ReadXMLData();
         }
@@ -42,14 +44,32 @@ namespace VerilogVisualizerTest
 
             try
             {
-                var root = XElement.Load("VerilogTestStructure2.xml");
+                var root = XElement.Load("VerilogTestStructure.xml");
 
                 foreach (XElement node in root.Elements())
                 {
+                    if(node.Name == "TopModule")
+                    {
+                        //Console.WriteLine("[NOTICE]---- TopModule called");
+                        topModule = new Module(node.Attribute("name").Value);
+                        parsingXmlData(node.Elements(), ref topModule, 0);
+                    }
+                    else if(node.Name == "ModulePool")
+                    {
+                        //Console.WriteLine("[NOTICE]---- ModulePool called");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[WARNING]---- should not be called");
+                    }
+
+
+                    /*
                     Module temp = new Module(node.Attribute("name").Value);
 
                     parsingXmlData(node.Elements(), ref temp, 0);
                     Modules.Add(temp);
+                    */
                 }
 
             }
@@ -66,22 +86,29 @@ namespace VerilogVisualizerTest
             {
                 switch (node.Name.ToString())
                 {
-                    case "VerilogPorts":
-                        foreach (var ele in node.Elements("Port"))
-                        {
-                            //Console.WriteLine(ele.Attribute("name").Value);
-                            Port pt = new Port(ele.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, ele.Attribute("name").Value);
-                            temp.Ports.Add(pt);
-                        }
+                    case "Port":
+                        Port pt = new Port(node.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, node.Attribute("name").Value);
+                        temp.Ports.Add(pt);
                         break;
-                    case "VerilogConnections":
-                        foreach (var ele in node.Elements("VerilogConnection"))
+                    case "Instance":
+                        string type = node.Element("type").Value;
+                        temp.Type = type;
+
+                        foreach (var ele in node.Elements("coupling"))
                         {
                             //Console.WriteLine(ele.Attribute("fPort").Value);
-                            VerilogConnection conn = new VerilogConnection(ele.Attribute("from").Value,
+                            Coupling cp = new Coupling(ele.Attribute("from").Value,
                                     ele.Attribute("fPort").Value, ele.Attribute("to").Value, ele.Attribute("tPort").Value);
-                            temp.VerilogConnections.Add(conn);
+                            temp.Couplings.Add(cp);
                         }
+
+                        var insCnt = node.Elements("Instance").Count();
+
+                        if(insCnt > 0)
+                        {
+
+                        }
+                        
                         break;
                     case "Modules":
                         foreach (XElement subNode in node.Elements())
@@ -89,7 +116,7 @@ namespace VerilogVisualizerTest
                             //Console.WriteLine(subNode.Name.ToString());
                             Module subModule = new Module(subNode.Attribute("name").Value);
                             parsingXmlData(subNode.Elements(), ref subModule, depth + 1);
-                            temp.VerilogInstances.Add(subModule);
+                            temp.Instances.Add(subModule);
                         }
                         break;
                     default:

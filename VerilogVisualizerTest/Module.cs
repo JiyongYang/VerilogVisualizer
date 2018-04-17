@@ -8,14 +8,21 @@ namespace VerilogVisualizerTest
 {
     public class Module
     {
-        private string name { get; set; }
+        private string name;
+        private string type;
         private List<Port> ports;
-        private List<VerilogConnection> verilogConnections;
-        private List<Module> verilogInstances;
+        private List<Coupling> couplings;
+        private List<Module> instances;
 
         public string Name
         {
             get { return name; }
+        }
+
+        public string Type
+        {
+            get { return type; }
+            set { type = value; }
         }
 
         public List<Port> Ports
@@ -23,22 +30,23 @@ namespace VerilogVisualizerTest
             get { return ports; }
         }
 
-        public List<VerilogConnection> VerilogConnections
+        public List<Coupling> Couplings
         {
-            get { return verilogConnections; }
+            get { return couplings; }
         }
 
-        public List<Module> VerilogInstances
+        public List<Module> Instances
         {
-            get { return verilogInstances; }
+            get { return instances; }
         }
 
         public Module(string name)
         {
             this.name = name;
+            type = "None";
             ports = new List<Port>();
-            verilogConnections = new List<VerilogConnection>();
-            verilogInstances = new List<Module>();
+            couplings = new List<Coupling>();
+            instances = new List<Module>();
         }
     }
 }

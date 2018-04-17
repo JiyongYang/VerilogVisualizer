@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VerilogVisualizerTest
 {
-    public class VerilogConnection
+    public class Coupling
     {
         private string from;
         private string to;
@@ -33,7 +33,7 @@ namespace VerilogVisualizerTest
             get { return tPort; }
         }
 
-        public VerilogConnection(string s1, string s2, string s3, string s4)
+        public Coupling(string s1, string s2, string s3, string s4)
         {
             this.from = s1;
             this.fPort = s2;
