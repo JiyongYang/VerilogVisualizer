@@ -32,6 +32,7 @@
             this.document = new Nevron.Diagram.NDrawingDocument();
             this.nDrawingView1 = new Nevron.Diagram.WinForm.NDrawingView();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+            this.treeView1 = new System.Windows.Forms.TreeView();
             this.SuspendLayout();
             // 
             // document
@@ -43,10 +44,10 @@
             this.nDrawingView1.AllowDrop = true;
             this.nDrawingView1.DesignTimeState = ((Nevron.Diagram.NBinaryState)(resources.GetObject("nDrawingView1.DesignTimeState")));
             this.nDrawingView1.Document = null;
-            this.nDrawingView1.Location = new System.Drawing.Point(12, 95);
+            this.nDrawingView1.Location = new System.Drawing.Point(183, 40);
             this.nDrawingView1.Name = "nDrawingView1";
             this.nDrawingView1.RenderTechnology = Nevron.GraphicsCore.RenderTechnology.GDIPlus;
-            this.nDrawingView1.Size = new System.Drawing.Size(1001, 574);
+            this.nDrawingView1.Size = new System.Drawing.Size(830, 539);
             this.nDrawingView1.TabIndex = 0;
             this.nDrawingView1.Text = "nDrawingView1";
             // 
@@ -58,14 +59,22 @@
             this.propertyGrid1.Location = new System.Drawing.Point(1019, 12);
             this.propertyGrid1.Name = "propertyGrid1";
             this.propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
-            this.propertyGrid1.Size = new System.Drawing.Size(233, 657);
+            this.propertyGrid1.Size = new System.Drawing.Size(139, 567);
             this.propertyGrid1.TabIndex = 1;
+            // 
+            // treeView1
+            // 
+            this.treeView1.Location = new System.Drawing.Point(12, 40);
+            this.treeView1.Name = "treeView1";
+            this.treeView1.Size = new System.Drawing.Size(165, 539);
+            this.treeView1.TabIndex = 2;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1264, 681);
+            this.ClientSize = new System.Drawing.Size(1170, 591);
+            this.Controls.Add(this.treeView1);
             this.Controls.Add(this.propertyGrid1);
             this.Controls.Add(this.nDrawingView1);
             this.Name = "Form1";
@@ -80,6 +89,7 @@
         private Nevron.Diagram.NDrawingDocument document;
         private Nevron.Diagram.WinForm.NDrawingView nDrawingView1;
         private System.Windows.Forms.PropertyGrid propertyGrid1;
+        private System.Windows.Forms.TreeView treeView1;
     }
 }
 

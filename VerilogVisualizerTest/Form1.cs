@@ -34,9 +34,31 @@ namespace VerilogVisualizerTest
             InitializeComponent();
 
             //topModule = new Module("TopModule");
-            ModulePool = new Dictionary<string, Module>();
+            //ModulePool = new Dictionary<string, Module>();
 
-            ReadXMLData();
+            //ReadXMLData();
+            Update();
+        }
+
+        private void Update()
+        {
+            TreeNode svrNode = new TreeNode("ModuleA", 0, 0);
+            svrNode.Nodes.Add("A_subModuleB", "A_subModuleB", 0, 0);
+            svrNode.Nodes.Add("A_subModuleC", "A_subModuleC", 0, 0);
+            svrNode.Nodes.Add("A_subModuleD", "A_subModuleD", 0, 0);
+
+            // 두번째 TreeView 아이템 - 네트웍
+            TreeNode netNode = new TreeNode("ModuleB", 1, 1);
+            netNode.Nodes.Add("B_subModuleB", "B_subModuleB", 1, 1);
+            netNode.Nodes.Add("B_subModuleC", "B_subModuleC", 1, 1);
+            netNode.Nodes.Add("B_subModuleD", "B_subModuleD", 1, 1);
+
+            // 2개의 노드를 TreeView에 추가
+            treeView1.Nodes.Add(svrNode);
+            treeView1.Nodes.Add(netNode);
+
+            // 모든 트리 노드를 보여준다
+            treeView1.ExpandAll();
         }
 
         private void ReadXMLData()
@@ -301,6 +323,13 @@ namespace VerilogVisualizerTest
 
         private void InitDocument()
         {
+            NStyleSheet styleSheet = new NStyleSheet("CustomConnectors");
+            //styleSheet.Style.StartArrowheadStyle = new NArrowheadStyle(ArrowheadShape.Circle, "CustomConnectorStart", new NSizeL(6, 6), new NColorFillStyle(Color.FromArgb(247, 150, 56)), new NStrokeStyle(1, Color.FromArgb(68, 90, 108)));
+            styleSheet.Style.EndArrowheadStyle = new NArrowheadStyle(ArrowheadShape.Arrow, "CustomConnectorStart", new NSizeL(6, 6), new NColorFillStyle(Color.FromArgb(247, 150, 56)), new NStrokeStyle(1, Color.FromArgb(68, 90, 108)));
+            styleSheet.Style.StrokeStyle = new NStrokeStyle(1, Color.FromArgb(68, 90, 108));
+            document.StyleSheets.AddChild(styleSheet);
+
+
             List<NGroup> instanceList = new List<NGroup>();
 
             NGroup Inport1 = CreateGlobalPort("Input1", PortType.IN);
@@ -389,7 +418,7 @@ namespace VerilogVisualizerTest
             //c7.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
             */
             NRoutableConnector routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -398,7 +427,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -407,7 +436,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -416,7 +445,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -425,7 +454,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -434,7 +463,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -443,7 +472,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -452,7 +481,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            //routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+            routableConnector.StyleSheetName = "CustomConnectors";
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
