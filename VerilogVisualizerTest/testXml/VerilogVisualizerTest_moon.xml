@@ -2,36 +2,34 @@
 <Modules >
     <TopModule name="ModuleA">
         <Ports>
-            <input> Input_A1 </input>
-            <input> Input_A2 </input>
-            <output> Output_A1 </output>
+            <Port type="In" name="Input_A1"></Port>
+            <Port type="In" name="Input_A2"></Port>
+            <Port type="Out" name="Output_A1"></Port>
         </Ports>
         <Instance name="A_SubModuleA">
             <type>  ModuleB </type>
-            <coupling ext_in="Input_A1"> Input_AA1 </coupling>
-            <coupling ext_in="Input_A2"> Input_AB1 </coupling>
-            <coupling ext_out="Output_A1"> Output_B1 </coupling>
+            <coupling from="ModuleA" fPort="Input_A1" to="A_SubModuleA" tPort="Input_AA1"></coupling>
+            <coupling from="ModuleA" fPort="Input_A1" to="A_SubModuleA" tPort="Input_AB1"></coupling>
+            <coupling from="A_SubModuleA" fPort="Output_B1" to="ModuleA" tPort="Output_A1"></coupling>
         <Instance>
         <Instance name="A_SubModuleB">
             <type>  ModuleB </type>
-            <coupling ext_in="Input_A1"> Input_AA1 </coupling>
-            <coupling ext_in="Input_A2"> Input_AB1 </coupling>
-            <coupling ext_out="Output_A1"> Output_B1 </coupling>
+            <coupling from="ModuleA" fPort="Input_A1" to="A_SubModuleB" tPort="Input_AA1"></coupling>
+            <coupling from="ModuleA" fPort="Input_A1" to="A_SubModuleB" tPort="Input_AB1"></coupling>
+            <coupling from="A_SubModuleB" fPort="Output_B1" to="ModuleA" tPort="Output_A1"></coupling>
         <Instance>
     </TopModule>
     <Module name="ModuleB">
         <Ports>
-            <input> Input_AA1 </input>
-            <input> Input_AB1 </input>
-            <output> Output_B1 </output>
+          <Port type="In" name="Input_AA1"></Port>
+          <Port type="In" name="Input_AB1"></Port>
+          <Port type="Out" name="Output_B1"></Port>
         </Ports>
         <Instance name="B_SubModuleB">
             <type>  ModuleC </type>
-            <coupling ext_in="Input_AA1"> Input_C1 </coupling>
-            <coupling ext_in="Input_AB2"> Input_C1 </coupling>
-            <coupling ext_in="Output_B1"> Output_C1 </coupling>
+            <coupling from="ModuleB" fPort="Input_AA1" to="B_SubModuleB" tPort="Input_C1"></coupling>
+            <coupling from="ModuleB" fPort="Input_AB1" to="B_SubModuleB" tPort="Input_C1"></coupling>
+            <coupling from="B_SubModuleB" fPort="Output_C1" to="A_SubModuleA" tPort="Output_B1"></coupling>
         <Instance>
     </Module>
 </Modules>
-
-

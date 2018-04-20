@@ -33,32 +33,41 @@ namespace VerilogVisualizerTest
         {
             InitializeComponent();
 
-            //topModule = new Module("TopModule");
-            //ModulePool = new Dictionary<string, Module>();
+            topModule = new Module("TopModule");
+            ModulePool = new Dictionary<string, Module>();
 
-            //ReadXMLData();
-            Update();
+            ReadXMLData();
+            Form_Update();
         }
 
-        private void Update()
+        private void Form_Update()
         {
-            TreeNode svrNode = new TreeNode("ModuleA", 0, 0);
-            svrNode.Nodes.Add("A_subModuleB", "A_subModuleB", 0, 0);
-            svrNode.Nodes.Add("A_subModuleC", "A_subModuleC", 0, 0);
-            svrNode.Nodes.Add("A_subModuleD", "A_subModuleD", 0, 0);
+            TreeList_Update();
+        }
 
-            // 두번째 TreeView 아이템 - 네트웍
-            TreeNode netNode = new TreeNode("ModuleB", 1, 1);
-            netNode.Nodes.Add("B_subModuleB", "B_subModuleB", 1, 1);
-            netNode.Nodes.Add("B_subModuleC", "B_subModuleC", 1, 1);
-            netNode.Nodes.Add("B_subModuleD", "B_subModuleD", 1, 1);
+        private void TreeList_Update()
+        {
+            TreeNode topNode = new TreeNode(topModule.Name);
 
-            // 2개의 노드를 TreeView에 추가
-            treeView1.Nodes.Add(svrNode);
-            treeView1.Nodes.Add(netNode);
+            for (int i = 0; i < topModule.Instances.Count; i++)
+            {
+                topNode.Nodes.Add(topModule.Instances[i].Id, topModule.Instances[i].Name);
+            }
+
+            treeView1.Nodes.Add(topNode);
 
             // 모든 트리 노드를 보여준다
             treeView1.ExpandAll();
+        }
+
+        private void TreeList_AddInstance(ref TreeNode node, Module mod)
+        {
+
+        }
+
+        private string makeId(int depth, int offset)
+        {
+            return depth.ToString() + "_" + offset.ToString();
         }
 
         private void ReadXMLData()
@@ -70,15 +79,16 @@ namespace VerilogVisualizerTest
 
                 foreach (XElement node in root.Elements())
                 {
-                    if(node.Name == "TopModule")
+                    if (node.Name == "TopModule")
                     {
-                        //Console.WriteLine("[NOTICE]---- TopModule called");
+                        Console.WriteLine("[NOTICE]---- TopModule called");
                         topModule = new Module(node.Attribute("name").Value);
-                        parsingXmlData(node.Elements(), ref topModule, 0);
+                        ParsingXML(node.Elements(), ref topModule, 0);
                     }
-                    else if(node.Name == "ModulePool")
+                    else if (node.Name == "ModulePool")
                     {
-                        //Console.WriteLine("[NOTICE]---- ModulePool called");
+                        Console.WriteLine("[NOTICE]---- ModulePool called");
+                        ParsingXML(node.Elements(), 0);
                     }
                     else
                     {
@@ -102,6 +112,90 @@ namespace VerilogVisualizerTest
             Console.WriteLine("[NOTICE]---- successfully load XML file");
         }
 
+        private void ParsingXML(IEnumerable<XElement> elements, ref Module mod, int depth)
+        {
+            int idOffset = 0;
+            mod.Id = depth.ToString();
+            foreach (var e in elements)
+            {
+                switch (e.Name.ToString())
+                {
+                    case "Port":
+                        Port pt = new Port(e.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, e.Value);
+                        mod.Ports.Add(pt);
+                        break;
+                    case "Instance":
+                        Module temp = new Module(e.Attribute("name").Value, "SI");
+                        temp.Id = makeId(depth, idOffset);
+                        ParsingXML_readInstance(e.Elements(), ref temp, depth + 1, 0);
+                        mod.Instances.Add(temp);
+                        idOffset += 1;
+                        break;
+                    default:
+                        Console.WriteLine("[ERROR]----" + e.Name);
+                        break;
+                }
+            }
+        }
+
+        private void ParsingXML(IEnumerable<XElement> elements, int depth)
+        {
+            foreach (var ele in elements)
+            {
+                if (ele.Name.ToString() == "Module")
+                {
+                    Module tModule = new Module(ele.Attribute("name").Value, "S");
+                    foreach (var e in ele.Elements("Port"))
+                    {
+                        Port pt = new Port(e.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, e.Value);
+                        tModule.Ports.Add(pt);
+                    }
+
+                    foreach (var e in ele.Elements("Instance"))
+                    {
+                        Module temp = new Module(e.Attribute("name").Value, "SI");
+                        ParsingXML_readInstance(e.Elements(), ref temp, depth + 1, 1);
+                        tModule.Instances.Add(temp);
+                    }
+
+                    ModulePool.Add(ele.Attribute("name").Value, tModule);
+                }
+            }
+        }
+
+        private void ParsingXML_readInstance(IEnumerable<XElement> elements, ref Module mod, int depth, int flg)
+        {
+            int idOffset = 0;
+            if (flg == 0)
+                mod.Id = depth.ToString();
+
+            foreach (var ele in elements)
+            {
+                switch (ele.Name.ToString())
+                {
+                    case "Type":
+                        mod.Type = ele.Value;
+                        break;
+                    case "Coupling":
+                        Coupling cp = new Coupling(ele.Attribute("from").Value,
+                                    ele.Attribute("fPort").Value, ele.Attribute("to").Value, ele.Attribute("tPort").Value);
+                        mod.Couplings.Add(cp);
+                        break;
+                    case "Instance":
+                        Module temp = new Module(ele.Attribute("name").Value, "SI");
+                        if (flg == 0)
+                            temp.Id = makeId(depth, idOffset);
+                        ParsingXML_readInstance(ele.Elements(), ref temp, depth + 1, flg);
+                        mod.Instances.Add(temp);
+                        idOffset += 1;
+                        break;
+                    default:
+                        Console.WriteLine("[ERROR]----" + ele.Name);
+                        break;
+                }
+            }
+        }
+
         private void parsingXmlData(IEnumerable<XElement> nodes, ref Module temp, int depth)
         {
             foreach (var node in nodes)
@@ -109,7 +203,7 @@ namespace VerilogVisualizerTest
                 switch (node.Name.ToString())
                 {
                     case "Port":
-                        Port pt = new Port(node.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, node.Attribute("name").Value);
+                        Port pt = new Port(node.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, node.Value);
                         temp.Ports.Add(pt);
                         break;
                     case "Instance":
@@ -123,14 +217,6 @@ namespace VerilogVisualizerTest
                                     ele.Attribute("fPort").Value, ele.Attribute("to").Value, ele.Attribute("tPort").Value);
                             temp.Couplings.Add(cp);
                         }
-
-                        var insCnt = node.Elements("Instance").Count();
-
-                        if(insCnt > 0)
-                        {
-
-                        }
-                        
                         break;
                     case "Modules":
                         foreach (XElement subNode in node.Elements())
@@ -178,7 +264,7 @@ namespace VerilogVisualizerTest
             NStyleSheet styleSheet = (document.StyleSheets.GetChildByName(NDR.NameConnectorsStyleSheet, -1) as NStyleSheet);
 
             NTextStyle textStyle = new NTextStyle();
-            textStyle.BackplaneStyle.Visible = true;
+            textStyle.BackplaneStyle.Visible = false;
             textStyle.BackplaneStyle.StandardFrameStyle.InnerBorderWidth = new NLength(0);
             styleSheet.Style.TextStyle = textStyle;
 
@@ -418,7 +504,7 @@ namespace VerilogVisualizerTest
             //c7.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
             */
             NRoutableConnector routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -427,7 +513,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -436,7 +522,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -445,7 +531,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -454,7 +540,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -463,7 +549,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -472,7 +558,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -481,7 +567,7 @@ namespace VerilogVisualizerTest
             routableConnector.Reroute();
 
             routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
-            routableConnector.StyleSheetName = "CustomConnectors";
+            routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
             document.ActiveLayer.AddChild(routableConnector);
 
@@ -501,9 +587,9 @@ namespace VerilogVisualizerTest
             {
                 gList[i].Location = new NPointF(xInsPos, yInsPos);
                 xInsPos += (int)gList[i].Bounds.Width + 100;
-                if((i+1)%3 == 0 && i != 0)
+                if ((i + 1) % 3 == 0 && i != 0)
                 {
-                    yInsPos += yInsPos + (int)gList[i-2].Bounds.Height + 100;
+                    yInsPos += yInsPos + (int)gList[i - 2].Bounds.Height + 100;
                     xInsPos = 200;
                 }
             }
@@ -543,7 +629,7 @@ namespace VerilogVisualizerTest
             Inport2.Location = new NPointF(50, 400);
             Outport1.Location = new NPointF(700, 350);
 
-            
+
 
 
 
@@ -650,7 +736,7 @@ namespace VerilogVisualizerTest
                 if (ports[i].Type == PortType.IN)
                 {
                     curInPtCnt += 1;
-                    port.Location = new NPointF(-port.Bounds.Width/2, (node.Bounds.Height / (InputCnt+1)) * curInPtCnt);
+                    port.Location = new NPointF(-port.Bounds.Width / 2, (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt);
 
                     NTextShape portName = new NTextShape(ports[i].Name,
                         port.Bounds.Width / 2, (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt,
@@ -663,7 +749,7 @@ namespace VerilogVisualizerTest
                 else
                 {
                     curOutPtCnt += 1;
-                    port.Location = new NPointF((-port.Bounds.Width / 2) + node.Bounds.Width, (node.Bounds.Height / (OutputCnt+1)) * curOutPtCnt);
+                    port.Location = new NPointF((-port.Bounds.Width / 2) + node.Bounds.Width, (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt);
 
                     NTextShape portName = new NTextShape(ports[i].Name,
                         node.Bounds.Width - (port.Bounds.Width / 2) - (ports[i].Name.Length * 5), (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt,
@@ -673,7 +759,7 @@ namespace VerilogVisualizerTest
                     portName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Right;
                     group.Shapes.AddChild(portName);
                 }
-                    
+
 
 
                 port.CreateShapeElements(ShapeElementsMask.Ports);
@@ -826,7 +912,7 @@ namespace VerilogVisualizerTest
             group.Shapes.AddChild(port);
 
             port.Name = name;
-            
+
             port.CreateShapeElements(ShapeElementsMask.Ports);
 
             NDynamicPort portInner;
