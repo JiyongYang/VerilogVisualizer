@@ -47,7 +47,7 @@
             this.nDrawingView1.Location = new System.Drawing.Point(183, 40);
             this.nDrawingView1.Name = "nDrawingView1";
             this.nDrawingView1.RenderTechnology = Nevron.GraphicsCore.RenderTechnology.GDIPlus;
-            this.nDrawingView1.Size = new System.Drawing.Size(830, 539);
+            this.nDrawingView1.Size = new System.Drawing.Size(1152, 539);
             this.nDrawingView1.TabIndex = 0;
             this.nDrawingView1.Text = "nDrawingView1";
             // 
@@ -56,10 +56,10 @@
             this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.propertyGrid1.Location = new System.Drawing.Point(1019, 12);
+            this.propertyGrid1.Location = new System.Drawing.Point(1341, 12);
             this.propertyGrid1.Name = "propertyGrid1";
             this.propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
-            this.propertyGrid1.Size = new System.Drawing.Size(139, 567);
+            this.propertyGrid1.Size = new System.Drawing.Size(148, 578);
             this.propertyGrid1.TabIndex = 1;
             // 
             // treeView1
@@ -68,12 +68,13 @@
             this.treeView1.Name = "treeView1";
             this.treeView1.Size = new System.Drawing.Size(165, 539);
             this.treeView1.TabIndex = 2;
+            this.treeView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.treeView1_MouseDoubleClick);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1170, 591);
+            this.ClientSize = new System.Drawing.Size(1501, 602);
             this.Controls.Add(this.treeView1);
             this.Controls.Add(this.propertyGrid1);
             this.Controls.Add(this.nDrawingView1);

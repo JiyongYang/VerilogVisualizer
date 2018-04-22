@@ -27,7 +27,6 @@ namespace VerilogVisualizerTest
     {
         public Module topModule;
         public Dictionary<string, Module> ModulePool;
-        //private NOrthogonalGraphLayout m_Layout;
 
         public Form1()
         {
@@ -51,7 +50,17 @@ namespace VerilogVisualizerTest
 
             for (int i = 0; i < topModule.Instances.Count; i++)
             {
-                topNode.Nodes.Add(topModule.Instances[i].Id, topModule.Instances[i].Name);
+                TreeNode temp;
+                if (topModule.Instances[i].Instances.Count > 0)
+                {
+                    temp = new TreeNode(topModule.Instances[i].Name);
+                    TreeList_AddInstance(ref temp, topModule.Instances[i].Instances);
+                    topNode.Nodes.Add(temp);
+                }
+                else
+                {
+                    topNode.Nodes.Add(topModule.Instances[i].Id, topModule.Instances[i].Name);
+                }
             }
 
             treeView1.Nodes.Add(topNode);
@@ -60,9 +69,23 @@ namespace VerilogVisualizerTest
             treeView1.ExpandAll();
         }
 
-        private void TreeList_AddInstance(ref TreeNode node, Module mod)
+        private void TreeList_AddInstance(ref TreeNode node, List<Module> mod)
         {
+            TreeNode temp;
+            for (int i = 0; i < mod.Count; i++)
+            {
+                if(mod[i].Instances.Count > 0)
+                {
+                    temp = new TreeNode(mod[i].Name);
+                    TreeList_AddInstance(ref temp, mod[i].Instances);
+                    node.Nodes.Add(temp);
+                }
+                else
+                {
+                    node.Nodes.Add(mod[i].Id, mod[i].Name);
+                }
 
+            }
         }
 
         private string makeId(int depth, int offset)
@@ -405,9 +428,72 @@ namespace VerilogVisualizerTest
         }
         */
 
-
-
+        
         private void InitDocument()
+        {
+            List<NGroup> inPortList = new List<NGroup>();
+            List<NGroup> outPortList = new List<NGroup>();
+            List<NGroup> instanceList = new List<NGroup>();
+            MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
+            //Dictionary<Tuple<string, string>, NGroup> objDict = new Dictionary<Tuple<string, string>, NGroup>();
+
+            // draw global port
+            for (int i = 0; i < topModule.Ports.Count; i++)
+            {
+                NGroup gPort = CreateGlobalPort(topModule.Ports[i].Name, topModule.Ports[i].Type);
+                document.ActiveLayer.AddChild(gPort);
+                if (topModule.Ports[i].Type == PortType.IN)
+                    inPortList.Add(gPort);
+                else
+                    outPortList.Add(gPort);
+                objMDict[topModule.Name, topModule.Ports[i].Name] = gPort;
+            }
+
+
+            for (int i = 0; i < topModule.Instances.Count; i++)
+            {
+                string key = topModule.Instances[i].Name;
+                NGroup instance = CreateInstance(key, ModulePool[topModule.Instances[i].Type].Ports , topModule.Instances[i].Id);
+                document.ActiveLayer.AddChild(instance);
+                instanceList.Add(instance);
+                //objDict[key] = instance;
+                for (int j = 0; j < ModulePool[topModule.Instances[i].Type].Ports.Count; j++)
+                {
+                    objMDict[key, ModulePool[topModule.Instances[i].Type].Ports[j].Name] = instance;
+                }
+                
+            }
+
+            setInstancesPos(instanceList, inPortList, outPortList);
+
+            
+            NRoutableConnector routableConnector;
+            for (int i = 0; i < topModule.Instances.Count; i++)
+            {
+                for (int j = 0; j < topModule.Instances[i].Couplings.Count; j++)
+                {
+                    routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+                    routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+                    routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+                    document.ActiveLayer.AddChild(routableConnector);
+
+                    var cou = topModule.Instances[i].Couplings[j];
+
+                    var sourIns = objMDict[cou.From, cou.FPort];
+                    var destIns = objMDict[cou.To, cou.TPort];
+
+                    routableConnector.StartPlug.Connect(((NShape)(sourIns.Shapes.GetChildByName(cou.FPort, 0))).Ports.GetChildByName(cou.FPort, 0) as NPort);
+                    routableConnector.EndPlug.Connect(((NShape)(destIns.Shapes.GetChildByName(cou.TPort, 0))).Ports.GetChildByName(cou.TPort, 0) as NPort);
+                    routableConnector.Reroute();
+                }
+                
+            }
+            
+
+            document.SizeToContent();
+        }
+
+        private void InitDocument_oldVersion()
         {
             NStyleSheet styleSheet = new NStyleSheet("CustomConnectors");
             //styleSheet.Style.StartArrowheadStyle = new NArrowheadStyle(ArrowheadShape.Circle, "CustomConnectorStart", new NSizeL(6, 6), new NColorFillStyle(Color.FromArgb(247, 150, 56)), new NStrokeStyle(1, Color.FromArgb(68, 90, 108)));
@@ -430,6 +516,7 @@ namespace VerilogVisualizerTest
             document.ActiveLayer.AddChild(Inport2);
             document.ActiveLayer.AddChild(Outport1);
 
+            /*
             NGroup shape = CreateInstance("Sum1", randomPortGen());
             //shape.Location = new NPointF(200, 100);
             document.ActiveLayer.AddChild(shape);
@@ -449,8 +536,10 @@ namespace VerilogVisualizerTest
             //shape3.Location = new NPointF(500, 300);
             document.ActiveLayer.AddChild(shape3);
             instanceList.Add(shape3);
+            */
 
-            setInstancesPos(instanceList);
+            //setInstancesPos(instanceList);
+
             /*
             NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
             c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
@@ -503,6 +592,7 @@ namespace VerilogVisualizerTest
             c7.EndPlug.Connect(((NShape)(Outport1.Shapes.GetChildByName("Output1asdfasdfasdf", 0))).Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
             //c7.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1asdfasdfasdf", 0) as NPort);
             */
+            /*
             NRoutableConnector routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
             routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
             routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
@@ -574,105 +664,151 @@ namespace VerilogVisualizerTest
             routableConnector.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OutPt0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
             routableConnector.EndPlug.Connect(((NShape)(shape1.Shapes.GetChildByName("InPt0", 0))).Ports.GetChildByName("IN", 0) as NPort);
             routableConnector.Reroute();
+            */
+            document.SizeToContent();
+        }
+
+        private Module find_instance(string instanceName)
+        {
+            if (topModule.Name == instanceName)
+                return topModule;
+
+            for (int i = 0; i < topModule.Instances.Count; i++)
+            {
+                if (topModule.Instances[i].Name == instanceName)
+                    return topModule.Instances[i];
+            }
+
+            for (int i = 0; i < topModule.Instances.Count; i++)
+            {
+                if (topModule.Instances[i].Instances.Count > 0)
+                    return find_instance_recur(topModule.Instances[i].Instances, instanceName);
+            }
+
+            // error
+            return null;
+        }
+
+        private Module find_instance_recur(List<Module> list, string instanceName)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Name == instanceName)
+                    return list[i];
+
+                if (list[i].Instances.Count > 0)
+                    return find_instance_recur(list[i].Instances, instanceName);
+            }
+
+            // error
+            return null;
+        }
+
+        private void Update_instance(Module _module)
+        {
+            List<NGroup> inPortList = new List<NGroup>();
+            List<NGroup> outPortList = new List<NGroup>();
+            List<NGroup> instanceList = new List<NGroup>();
+            MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
+
+
+            // draw global port
+            for (int i = 0; i < _module.Ports.Count; i++)
+            {
+                NGroup gPort = CreateGlobalPort(_module.Ports[i].Name, _module.Ports[i].Type);
+                document.ActiveLayer.AddChild(gPort);
+                if (_module.Ports[i].Type == PortType.IN)
+                    inPortList.Add(gPort);
+                else
+                    outPortList.Add(gPort);
+                objMDict[_module.Name, _module.Ports[i].Name] = gPort;
+            }
+
+
+            for (int i = 0; i < _module.Instances.Count; i++)
+            {
+                string key = _module.Instances[i].Name;
+                NGroup instance = CreateInstance(key, ModulePool[_module.Instances[i].Type].Ports, _module.Instances[i].Id);
+                document.ActiveLayer.AddChild(instance);
+                instanceList.Add(instance);
+                //objDict[key] = instance;
+                for (int j = 0; j < ModulePool[_module.Instances[i].Type].Ports.Count; j++)
+                {
+                    objMDict[key, ModulePool[_module.Instances[i].Type].Ports[j].Name] = instance;
+                }
+
+            }
+
+            setInstancesPos(instanceList, inPortList, outPortList);
+
+
+            NRoutableConnector routableConnector;
+            for (int i = 0; i < _module.Instances.Count; i++)
+            {
+                for (int j = 0; j < _module.Instances[i].Couplings.Count; j++)
+                {
+                    routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+                    routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
+                    routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
+                    document.ActiveLayer.AddChild(routableConnector);
+
+                    var cou = _module.Instances[i].Couplings[j];
+
+                    var sourIns = objMDict[cou.From, cou.FPort];
+                    var destIns = objMDict[cou.To, cou.TPort];
+
+                    routableConnector.StartPlug.Connect(((NShape)(sourIns.Shapes.GetChildByName(cou.FPort, 0))).Ports.GetChildByName(cou.FPort, 0) as NPort);
+                    routableConnector.EndPlug.Connect(((NShape)(destIns.Shapes.GetChildByName(cou.TPort, 0))).Ports.GetChildByName(cou.TPort, 0) as NPort);
+                    routableConnector.Reroute();
+                }
+
+            }
+
 
             document.SizeToContent();
         }
 
-        private void setInstancesPos(List<NGroup> gList)
+        private void setInstancesPos(List<NGroup> gList, List<NGroup> gPortInList, List<NGroup> gPortOutList)
         {
+            int xPortPos = 50;
+            int yPortPos = 200;
+
             int xInsPos = 200;
             int yInsPos = 100;
+
+            for (int i = 0; i < gPortInList.Count; i++)
+            {
+                gPortInList[i].Location = new NPointF(xPortPos, yPortPos);
+                yPortPos += 60;
+            }
 
             for (int i = 0; i < gList.Count; i++)
             {
                 gList[i].Location = new NPointF(xInsPos, yInsPos);
                 xInsPos += (int)gList[i].Bounds.Width + 100;
+
                 if ((i + 1) % 3 == 0 && i != 0)
                 {
                     yInsPos += yInsPos + (int)gList[i - 2].Bounds.Height + 100;
                     xInsPos = 200;
                 }
+
+                // check instance max x pos
+                if (xPortPos < xInsPos)
+                    xPortPos = xInsPos;
+            }
+
+            yPortPos = 200;
+
+            for (int i = 0; i < gPortOutList.Count; i++)
+            {
+                gPortOutList[i].Location = new NPointF(xPortPos, yPortPos);
+                yPortPos += 60;
             }
         }
 
-        private void InitDocument2()
-        {
-            double scale = 1.5;
-
-            NGroup shape = CreateInstance2(0, 0, 0, 0, "Sum1", 3, 2);
-            shape.Location = new NPointF(200, 100);
-            shape.Width = shape.Width * (float)scale;
-            shape.Height = shape.Height * (float)scale;
-
-            NGroup shape2 = CreateInstance2(0, 0, 0, 0, "Sum2", 2, 3);
-            shape2.Location = new NPointF(500, 100);
-            shape2.Width = shape2.Width * (float)scale;
-            shape2.Height = shape2.Height * (float)scale;
-
-            NGroup shape3 = CreateInstance2(0, 0, 0, 0, "Sum3", 2, 2);
-            shape3.Location = new NPointF(200, 500);
-            shape3.Width = shape3.Width * (float)scale;
-            shape3.Height = shape3.Height * (float)scale;
-
-            NShape Inport1 = CreateGlobalPort("Input1", PortType.IN);
-            NShape Inport2 = CreateGlobalPort("Input2", PortType.IN);
-            NShape Outport1 = CreateGlobalPort("Output1asdfasdfasdf", PortType.OUT);
-
-            document.ActiveLayer.AddChild(shape);
-            document.ActiveLayer.AddChild(shape2);
-            document.ActiveLayer.AddChild(shape3);
-            document.ActiveLayer.AddChild(Inport1);
-            document.ActiveLayer.AddChild(Inport2);
-            document.ActiveLayer.AddChild(Outport1);
-
-            Inport1.Location = new NPointF(50, 300);
-            Inport2.Location = new NPointF(50, 400);
-            Outport1.Location = new NPointF(700, 350);
-
-
-
-
-
-            /*NStep3Connector c1 = new NStep3Connector(false, 50, 0, true);
-            c1.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            c1.Text = "c1";
-            document.ActiveLayer.AddChild(c1);
-            c1.StartPlug.Connect(Inport1.Ports.GetChildByName("Input1", 0) as NPort);
-            c1.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("IN1", 0))).Ports.GetChildByName("IN", 0) as NPort);
-
-            NStep3Connector c2 = new NStep3Connector(false, 90, 0, true);
-            c2.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            c2.Text = "c2";
-            document.ActiveLayer.AddChild(c2);
-            c2.StartPlug.Connect(Inport1.Ports.GetChildByName("Input1", 0) as NPort);
-            c2.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("IN1", 0))).Ports.GetChildByName("IN", 0) as NPort);
-
-            NStep3Connector c3 = new NStep3Connector(false, 70, 0, true);
-            c3.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            c3.Text = "c3";
-            document.ActiveLayer.AddChild(c3);
-            c3.StartPlug.Connect(Inport2.Ports.GetChildByName("Input2", 0) as NPort);
-            c3.EndPlug.Connect(((NShape)(shape.Shapes.GetChildByName("IN2", 0))).Ports.GetChildByName("IN", 0) as NPort);
-
-            NStep3Connector c4 = new NStep3Connector(false, 70, 0, true);
-            c4.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            c4.Text = "c4";
-            document.ActiveLayer.AddChild(c4);
-            c4.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
-            c4.EndPlug.Connect(((NShape)(shape2.Shapes.GetChildByName("IN0", 0))).Ports.GetChildByName("IN", 0) as NPort);
-
-            NStep3Connector c5 = new NStep3Connector(false, 20, 0, true);
-            c5.StyleSheetName = NDR.NameConnectorsStyleSheet;
-            c5.Text = "c5";
-            document.ActiveLayer.AddChild(c5);
-            c5.StartPlug.Connect(((NShape)(shape.Shapes.GetChildByName("OUT0", 0))).Ports.GetChildByName("OUT", 0) as NPort);
-            c5.EndPlug.Connect(Outport1.Ports.GetChildByName("Output1", 0) as NPort);*/
-
-
-            document.SizeToContent();
-        }
-
-        private NGroup CreateInstance(string name, List<Port> ports)
+        
+        private NGroup CreateInstance(string name, List<Port> ports, string id)
         {
             int instanceWidth = 50;
             int instanceHeight = 50;
@@ -682,18 +818,20 @@ namespace VerilogVisualizerTest
             int OutputMaxSize = 10;
             int OutputCnt = 0;
 
-            int offsetWidth = 5;
+            int offsetWidth = 9;
             int offsetHeight = 30;
             int widthPadding = 10;
             int heightPadding = 10;
 
             int textWidth = 30;
             int textHeight = 15;
+            double textOffset = 1.5;
 
             int curInPtCnt = 0;
             int curOutPtCnt = 0;
 
             NGroup group = new NGroup();
+            group.Name = id;
 
             // find max input/output port size
             for (int i = 0; i < ports.Count; i++)
@@ -724,7 +862,7 @@ namespace VerilogVisualizerTest
 
             NTextShape nodeName = new NTextShape(name, 0, -15, textWidth, textHeight);
             nodeName.Style.TextStyle = new NTextStyle();
-            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 7));
+            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 9));
             group.Shapes.AddChild(nodeName);
 
             // Add Port
@@ -739,10 +877,10 @@ namespace VerilogVisualizerTest
                     port.Location = new NPointF(-port.Bounds.Width / 2, (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt);
 
                     NTextShape portName = new NTextShape(ports[i].Name,
-                        port.Bounds.Width / 2, (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt,
-                        ports[i].Name.Length * 5, port.Bounds.Height);
+                        port.Bounds.Width / 2,      (node.Bounds.Height / (InputCnt + 1)) * curInPtCnt,
+                        ports[i].Name.Length * 9,   (int)(port.Bounds.Height * textOffset));
                     portName.Style.TextStyle = new NTextStyle();
-                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 6));
+                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 9));
                     portName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Left;
                     group.Shapes.AddChild(portName);
                 }
@@ -752,10 +890,10 @@ namespace VerilogVisualizerTest
                     port.Location = new NPointF((-port.Bounds.Width / 2) + node.Bounds.Width, (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt);
 
                     NTextShape portName = new NTextShape(ports[i].Name,
-                        node.Bounds.Width - (port.Bounds.Width / 2) - (ports[i].Name.Length * 5), (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt,
-                        ports[i].Name.Length * 5, port.Bounds.Height);
+                        node.Bounds.Width - (port.Bounds.Width / 2) - (ports[i].Name.Length * 9), (node.Bounds.Height / (OutputCnt + 1)) * curOutPtCnt,
+                        ports[i].Name.Length * 9, (int)(port.Bounds.Height * textOffset));
                     portName.Style.TextStyle = new NTextStyle();
-                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 6));
+                    portName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 9));
                     portName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Right;
                     group.Shapes.AddChild(portName);
                 }
@@ -768,12 +906,12 @@ namespace VerilogVisualizerTest
                 if (ports[i].Type == PortType.IN)
                 {
                     portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
-                    portInner.Name = "IN";
+                    portInner.Name = ports[i].Name;
                 }
                 else
                 {
                     portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
-                    portInner.Name = "OUT";
+                    portInner.Name = ports[i].Name;
                 }
                 port.Ports.AddChild(portInner);
             }
@@ -783,6 +921,7 @@ namespace VerilogVisualizerTest
             return group;
         }
 
+        /*
         private NGroup CreateInstance2(float x, float y, int width, int height, string name,
             int inPortCnt, int outPortCnt)
         {
@@ -860,45 +999,13 @@ namespace VerilogVisualizerTest
 
             return group;
         }
+        */
 
-        private NShape CreateGlobalPort(string name, PortType type, int width, int height, NPointF location)
-        {
-            int sizeOfPort = 0;
-
-            sizeOfPort = name.Length * 5;
-            //width = sizeOfPort;
-
-            NShape port;
-
-            port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
-                new NPointF((int)(width * 1.5) , 0),
-                new NPointF((int)(width * 1.5 + 20), (int)(height / 2)),
-                new NPointF((int)(width * 1.5) , (int)(height)),
-                new NPointF(0, (int)(height))
-                });
-
-            port.Name = name;
-            port.Text = name;
-
-            port.CreateShapeElements(ShapeElementsMask.Ports);
-
-            NDynamicPort portInner;
-            if (type == PortType.IN)
-                portInner = new NDynamicPort(new NContentAlignment(50, 0), DynamicPortGlueMode.GlueToContour);
-            else
-                portInner = new NDynamicPort(new NContentAlignment(-50, 0), DynamicPortGlueMode.GlueToContour);
-            portInner.Name = name;
-            port.Ports.AddChild(portInner);
-
-            port.Location = location;
-
-            return port;
-        }
 
         private NGroup CreateGlobalPort(string name, PortType type)
         {
             int width = 10;
-            int height = 10;
+            int height = 15;
 
             NGroup group = new NGroup();
 
@@ -926,14 +1033,23 @@ namespace VerilogVisualizerTest
             NTextShape nodeName;
             if (type == PortType.IN)
             {
-                nodeName = new NTextShape(name, -(name.Length * 5), 0, name.Length * 5, height);
+                nodeName = new NTextShape(name, -(name.Length * 8), 0, name.Length * 8, height);
             }
             else
             {
-                nodeName = new NTextShape(name, port.Bounds.Width, 0, name.Length * 5, height);
+                nodeName = new NTextShape(name, port.Bounds.Width, 0, name.Length * 8, height);
             }
             nodeName.Style.TextStyle = new NTextStyle();
-            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 7));
+            nodeName.Style.TextStyle.FontStyle = new NFontStyle(new Font("Arial", 9));
+            if (type == PortType.IN)
+            {
+                nodeName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Right;
+            }
+            else
+            {
+                nodeName.Style.TextStyle.StringFormatStyle.HorzAlign = Nevron.HorzAlign.Left;
+            }
+            
             group.Shapes.AddChild(nodeName);
 
             group.UpdateModelBounds();
@@ -1015,6 +1131,15 @@ namespace VerilogVisualizerTest
             var chars = Enumerable.Range(0, length)
                 .Select(x => pool[r.Next(0, pool.Length)]);
             return new string(chars.ToArray());
+        }
+
+        private void treeView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            TreeNode node = treeView1.SelectedNode;
+
+            MessageBox.Show(string.Format("You selected: {0}", node.Text));
+
+
         }
     }
 }
