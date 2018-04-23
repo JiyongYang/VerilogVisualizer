@@ -25,6 +25,7 @@ namespace VerilogVisualizerTest
         public string Name
         {
             get { return name; }
+            set { name = value; }
         }
 
         public string Type
@@ -42,36 +43,60 @@ namespace VerilogVisualizerTest
         public List<Port> Ports
         {
             get { return ports; }
+            set { ports = value; }
         }
 
         public List<Coupling> Couplings
         {
             get { return couplings; }
+            set { couplings = value; }
         }
 
         public List<Module> Instances
         {
             get { return instances; }
+            set { instances = value; }
         }
 
-        public Module(string name)
+        public Module(string _name)
         {
-            this.metaInfo = "None";
-            this.name = name;
+            id = "None";
+            metaInfo = "None";
+            name = _name;
             type = "None";
             ports = new List<Port>();
             couplings = new List<Coupling>();
             instances = new List<Module>();
         }
 
-        public Module(string name, string metaInfo)
+        public Module(string _name, string _metaInfo)
         {
-            this.metaInfo = metaInfo;
-            this.name = name;
+            id = "None";
+            metaInfo = _metaInfo;
+            name = _name;
             type = "None";
             ports = new List<Port>();
             couplings = new List<Coupling>();
             instances = new List<Module>();
         }
+
+        public object ShallowCopy()
+        {
+            return this.MemberwiseClone();
+        }
+
+        /*
+        public Module DeepCopy()
+        {
+            Module other = (Module)this.MemberwiseClone();
+            other.MetaInfo = string.Copy(metaInfo);
+            other.Name = string.Copy(name);
+            other.id = string.Copy(id);
+            other.type = string.Copy(type);
+            other.ports = 
+
+            return other;
+        }
+        */
     }
 }

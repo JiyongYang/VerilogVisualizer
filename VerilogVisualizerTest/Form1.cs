@@ -27,6 +27,7 @@ namespace VerilogVisualizerTest
     {
         public Module topModule;
         public Dictionary<string, Module> ModulePool;
+        private string topModuleName;
 
         public Form1()
         {
@@ -37,6 +38,7 @@ namespace VerilogVisualizerTest
 
             ReadXMLData();
             Form_Update();
+            topModuleName = topModule.Name;
         }
 
         private void Form_Update()
@@ -435,7 +437,6 @@ namespace VerilogVisualizerTest
             List<NGroup> outPortList = new List<NGroup>();
             List<NGroup> instanceList = new List<NGroup>();
             MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
-            //Dictionary<Tuple<string, string>, NGroup> objDict = new Dictionary<Tuple<string, string>, NGroup>();
 
             // draw global port
             for (int i = 0; i < topModule.Ports.Count; i++)
@@ -704,13 +705,36 @@ namespace VerilogVisualizerTest
             return null;
         }
 
-        private void Update_instance(Module _module)
+        private Module finded_instance_update(Module mod)
         {
+            if (mod.Type != "None" && !(mod.Ports.Count > 0))
+            {
+                Module temp = (Module)ModulePool[mod.Type].ShallowCopy();
+
+                for (int i = 0; i < temp.Ports.Count; i++)
+                {
+                    mod.Ports.Add(temp.Ports[i]);
+                }
+
+                for (int i = 0; i < temp.Instances.Count; i++)
+                {
+                    mod.Instances.Add(temp.Instances[i]);
+                }
+            }
+            return mod;
+        }
+
+        private void Update_instance(Module mod)
+        {
+            Module _module = (Module)mod.ShallowCopy();
+
             List<NGroup> inPortList = new List<NGroup>();
             List<NGroup> outPortList = new List<NGroup>();
             List<NGroup> instanceList = new List<NGroup>();
             MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
 
+            if(_module.Name != topModuleName)
+                _module.Name = string.Copy(ModulePool[_module.Type].Name);
 
             // draw global port
             for (int i = 0; i < _module.Ports.Count; i++)
@@ -731,7 +755,6 @@ namespace VerilogVisualizerTest
                 NGroup instance = CreateInstance(key, ModulePool[_module.Instances[i].Type].Ports, _module.Instances[i].Id);
                 document.ActiveLayer.AddChild(instance);
                 instanceList.Add(instance);
-                //objDict[key] = instance;
                 for (int j = 0; j < ModulePool[_module.Instances[i].Type].Ports.Count; j++)
                 {
                     objMDict[key, ModulePool[_module.Instances[i].Type].Ports[j].Name] = instance;
@@ -741,13 +764,14 @@ namespace VerilogVisualizerTest
 
             setInstancesPos(instanceList, inPortList, outPortList);
 
-
+            
             NRoutableConnector routableConnector;
             for (int i = 0; i < _module.Instances.Count; i++)
             {
                 for (int j = 0; j < _module.Instances[i].Couplings.Count; j++)
                 {
                     routableConnector = new NRoutableConnector(RoutableConnectorType.DynamicHV, RerouteAutomatically.Always);
+                    routableConnector.Name = "name";
                     routableConnector.StyleSheetName = NDR.NameConnectorsStyleSheet;
                     routableConnector.Style.StrokeStyle = new NStrokeStyle(1, Color.Blue);
                     document.ActiveLayer.AddChild(routableConnector);
@@ -760,12 +784,15 @@ namespace VerilogVisualizerTest
                     routableConnector.StartPlug.Connect(((NShape)(sourIns.Shapes.GetChildByName(cou.FPort, 0))).Ports.GetChildByName(cou.FPort, 0) as NPort);
                     routableConnector.EndPlug.Connect(((NShape)(destIns.Shapes.GetChildByName(cou.TPort, 0))).Ports.GetChildByName(cou.TPort, 0) as NPort);
                     routableConnector.Reroute();
+                 
                 }
 
             }
-
+            
 
             document.SizeToContent();
+
+            _module = null;
         }
 
         private void setInstancesPos(List<NGroup> gList, List<NGroup> gPortInList, List<NGroup> gPortOutList)
@@ -807,7 +834,6 @@ namespace VerilogVisualizerTest
             }
         }
 
-        
         private NGroup CreateInstance(string name, List<Port> ports, string id)
         {
             int instanceWidth = 50;
@@ -1001,7 +1027,6 @@ namespace VerilogVisualizerTest
         }
         */
 
-
         private NGroup CreateGlobalPort(string name, PortType type)
         {
             int width = 10;
@@ -1087,59 +1112,18 @@ namespace VerilogVisualizerTest
             return port;
         }
 
-        private List<Port> randomPortGen()
-        {
-            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
-
-            List<Port> temp = new List<Port>();
-
-            for (int i = 0; i < r.Next(2, 10); i++)
-            {
-                temp.Add(new Port(PortType.IN, "InPt" + i));
-            }
-
-            for (int i = 0; i < r.Next(2, 10); i++)
-            {
-                temp.Add(new Port(PortType.OUT, "OutPt" + i));
-            }
-
-            return temp;
-        }
-
-        private List<Port> randomPortGen_ranStr()
-        {
-            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
-
-            List<Port> temp = new List<Port>();
-
-            for (int i = 0; i < r.Next(0, 10); i++)
-            {
-                temp.Add(new Port(PortType.IN, "InPt" + RandomString(new Random(new System.DateTime().Millisecond).Next(0, 10), r)));
-            }
-
-            for (int i = 0; i < r.Next(0, 10); i++)
-            {
-                temp.Add(new Port(PortType.OUT, "OutPt" + RandomString(new Random(new System.DateTime().Millisecond).Next(0, 10), r)));
-            }
-
-            return temp;
-        }
-
-        private static string RandomString(int length, Random r)
-        {
-            const string pool = "abcdefghijklmnopqrstuvwxyz0123456789";
-            var chars = Enumerable.Range(0, length)
-                .Select(x => pool[r.Next(0, pool.Length)]);
-            return new string(chars.ToArray());
-        }
-
         private void treeView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             TreeNode node = treeView1.SelectedNode;
 
             MessageBox.Show(string.Format("You selected: {0}", node.Text));
 
+            nDrawingView1.LockRefresh = true;
+            document.ActiveLayer.RemoveAllChildren();
+            
+            Update_instance(finded_instance_update(find_instance(node.Text)));
 
+            nDrawingView1.LockRefresh = false;
         }
     }
 }
