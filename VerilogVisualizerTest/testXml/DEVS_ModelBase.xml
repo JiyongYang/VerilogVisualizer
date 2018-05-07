@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BaseModels>
+    <BaseModel name="modelA" type="Atomic">
+      <Port type="In">modelA_In_1</Port>
+      <Port type="In">modelA_In_2</Port>
+      <Port type="In">modelA_In_3</Port>
+      <Port type="Out">modelA_Out_1</Port>
+      <Port type="Out">modelA_Out_2</Port>
+      <States>
+        <State ta="Infinity">IDLE</State>
+        <State ta="1">ACTIVE</State>
+      </States>
+    </BaseModel>
+    <BaseModel name="modelB" type="Atomic">
+      <Port type="In">modelB_In_1</Port>
+      <Port type="In">modelB_In_2</Port>
+      <Port type="Out">modelB_Out_1</Port>
+      <Port type="Out">modelB_Out_2</Port>
+      <States>
+        <State ta="Infinity">WAIT</State>
+        <State ta="1">ACTIVE</State>
+      </States>
+    </BaseModel>
+    <BaseModel name="modelC" type="Atomic">
+      <Port type="In">modelC_In_1</Port>
+      <Port type="In">modelC_In_2</Port>
+      <Port type="In">modelC_In_3</Port>
+      <Port type="Out">modelC_Out_1</Port>
+      <Port type="Out">modelC_Out_2</Port>
+      <States>
+        <State ta="Infinity">WAIT</State>
+        <State ta="1">ACTIVE</State>
+        <State ta="Infinity">STOP</State>
+      </States>
+    </BaseModel>
+</BaseModels>

@@ -27,7 +27,10 @@ namespace VerilogVisualizerTest
     {
         public Module topModule;
         public Dictionary<string, Module> ModulePool;
+        List<BaseModel> BaseModels;
+
         private string topModuleName;
+                
 
         public Form1()
         {
@@ -35,6 +38,7 @@ namespace VerilogVisualizerTest
 
             topModule = new Module("TopModule");
             ModulePool = new Dictionary<string, Module>();
+            BaseModels = new List<BaseModel>();
 
             ReadXMLData();
             Form_Update();
@@ -48,6 +52,8 @@ namespace VerilogVisualizerTest
 
         private void TreeList_Update()
         {
+            // Structure list
+
             TreeNode topNode = new TreeNode(topModule.Name);
 
             for (int i = 0; i < topModule.Instances.Count; i++)
@@ -69,6 +75,16 @@ namespace VerilogVisualizerTest
 
             // 모든 트리 노드를 보여준다
             treeView1.ExpandAll();
+
+            // Base model list
+
+            for (int i = 0; i < BaseModels.Count; i++)
+            {
+                TreeNode tn = new TreeNode(BaseModels[i].Name);
+                treeView2.Nodes.Add(tn);
+            }
+
+            treeView2.ExpandAll();
         }
 
         private void TreeList_AddInstance(ref TreeNode node, List<Module> mod)
@@ -135,6 +151,53 @@ namespace VerilogVisualizerTest
                 Console.WriteLine("[WARNING]----" + ex.ToString());
             }
             Console.WriteLine("[NOTICE]---- successfully load XML file");
+
+            try
+            {
+                var root = XElement.Load("DEVS_ModelBase.xml");
+
+                foreach (XElement node in root.Elements())
+                {
+                    if (node.Name == "BaseModel")
+                    {
+                        Console.WriteLine("[NOTICE]---- BaseModel called");
+                        BaseModel temp_baseModel = new BaseModel(node.Attribute("name").Value, node.Attribute("type").Value);
+                        ParsingBaseModelXML(node.Elements(), ref temp_baseModel, 0);
+                        BaseModels.Add(temp_baseModel);
+                    }
+                    else
+                    {
+                        Console.WriteLine("[WARNING]---- should not be called");
+                    }
+                }
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("[WARNING]----" + ex.ToString());
+            }
+            Console.WriteLine("[NOTICE]---- successfully load XML file");
+        }
+
+        private void ParsingBaseModelXML(IEnumerable<XElement> elements, ref BaseModel bm, int depth)
+        {
+            foreach (var e in elements)
+            {
+                switch (e.Name.ToString())
+                {
+                    case "Port":
+                        Port pt = new Port(e.Attribute("type").Value == "In" ? PortType.IN : PortType.OUT, e.Value);
+                        bm.Ports.Add(pt);
+                        break;
+                    case "State":
+                        State st = new State(e.Attribute("ta").Value, e.Value);
+                        bm.States.Add(st);
+                        break;
+                    default:
+                        Console.WriteLine("[ERROR]----" + e.Name);
+                        break;
+                }
+            }
         }
 
         private void ParsingXML(IEnumerable<XElement> elements, ref Module mod, int depth)
@@ -485,6 +548,8 @@ namespace VerilogVisualizerTest
 
                     routableConnector.StartPlug.Connect(((NShape)(sourIns.Shapes.GetChildByName(cou.FPort, 0))).Ports.GetChildByName(cou.FPort, 0) as NPort);
                     routableConnector.EndPlug.Connect(((NShape)(destIns.Shapes.GetChildByName(cou.TPort, 0))).Ports.GetChildByName(cou.TPort, 0) as NPort);
+                    routableConnector.DoubleClick += new NodeViewEventHandler(routableConnector_DoubleClick);
+
                     routableConnector.Reroute();
                 }
                 
@@ -492,6 +557,17 @@ namespace VerilogVisualizerTest
             
 
             document.SizeToContent();
+        }
+
+        private void routableConnector_DoubleClick(NNodeViewEventArgs args)
+        {
+            NShape shape = args.Node as NShape;
+            if (shape == null)
+                return;
+
+            MessageBox.Show(shape.Name + "\n [" + shape.FromShape.AggregateModel.Name + " , " + shape.StartPlug.InwardPort.Name
+                + "]\n >> \n[" + shape.ToShape.AggregateModel.Name + " , " + shape.EndPlug.InwardPort.Name + "]", "Country clicked:", MessageBoxButtons.OK, MessageBoxIcon.None);
+            args.Handled = true;
         }
 
         private void InitDocument_oldVersion()
@@ -857,7 +933,7 @@ namespace VerilogVisualizerTest
             int curOutPtCnt = 0;
 
             NGroup group = new NGroup();
-            group.Name = id;
+            group.Name = name;
 
             // find max input/output port size
             for (int i = 0; i < ports.Count; i++)
@@ -1033,6 +1109,7 @@ namespace VerilogVisualizerTest
             int height = 15;
 
             NGroup group = new NGroup();
+            group.Name = name;
 
             NShape port = new NPolygonShape(new NPointF[] { new NPointF(0, 0),
                 new NPointF((int)(width * 1.5) , 0),
@@ -1122,6 +1199,20 @@ namespace VerilogVisualizerTest
             document.ActiveLayer.RemoveAllChildren();
             
             Update_instance(finded_instance_update(find_instance(node.Text)));
+
+            nDrawingView1.LockRefresh = false;
+        }
+
+        private void treeView2_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            TreeNode node = treeView1.SelectedNode;
+
+            MessageBox.Show(string.Format("You selected: {0}", node.Text));
+
+            nDrawingView1.LockRefresh = true;
+            //document.ActiveLayer.RemoveAllChildren();
+
+            //Update_instance(finded_instance_update(find_instance(node.Text)));
 
             nDrawingView1.LockRefresh = false;
         }
