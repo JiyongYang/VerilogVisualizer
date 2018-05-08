@@ -27,10 +27,16 @@ namespace VerilogVisualizerTest
     {
         public Module topModule;
         public Dictionary<string, Module> ModulePool;
-        List<BaseModel> BaseModels;
+        //List<BaseModel> BaseModels;
+        Dictionary<string, BaseModel> BaseModels;
 
         private string topModuleName;
-                
+
+        List<NGroup> inPortList;
+        List<NGroup> outPortList;
+        List<NGroup> instanceList;
+        MultiKeyDictionary<string, string, NGroup> objMDict;
+
 
         public Form1()
         {
@@ -38,7 +44,12 @@ namespace VerilogVisualizerTest
 
             topModule = new Module("TopModule");
             ModulePool = new Dictionary<string, Module>();
-            BaseModels = new List<BaseModel>();
+            BaseModels = new Dictionary<string, BaseModel>();
+
+            inPortList = new List<NGroup>();
+            outPortList = new List<NGroup>();
+            instanceList = new List<NGroup>();
+            objMDict = new MultiKeyDictionary<string, string, NGroup>();
 
             ReadXMLData();
             Form_Update();
@@ -78,9 +89,9 @@ namespace VerilogVisualizerTest
 
             // Base model list
 
-            for (int i = 0; i < BaseModels.Count; i++)
+            foreach (KeyValuePair<string, BaseModel> item in BaseModels)
             {
-                TreeNode tn = new TreeNode(BaseModels[i].Name);
+                TreeNode tn = new TreeNode(item.Key);
                 treeView2.Nodes.Add(tn);
             }
 
@@ -163,7 +174,9 @@ namespace VerilogVisualizerTest
                         Console.WriteLine("[NOTICE]---- BaseModel called");
                         BaseModel temp_baseModel = new BaseModel(node.Attribute("name").Value, node.Attribute("type").Value);
                         ParsingBaseModelXML(node.Elements(), ref temp_baseModel, 0);
-                        BaseModels.Add(temp_baseModel);
+
+                        // [!@#$] Need to check key existence
+                        BaseModels.Add(temp_baseModel.Name, temp_baseModel);
                     }
                     else
                     {
@@ -496,11 +509,7 @@ namespace VerilogVisualizerTest
         
         private void InitDocument()
         {
-            List<NGroup> inPortList = new List<NGroup>();
-            List<NGroup> outPortList = new List<NGroup>();
-            List<NGroup> instanceList = new List<NGroup>();
-            MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
-
+            
             // draw global port
             for (int i = 0; i < topModule.Ports.Count; i++)
             {
@@ -552,23 +561,13 @@ namespace VerilogVisualizerTest
 
                     routableConnector.Reroute();
                 }
-                
             }
             
 
             document.SizeToContent();
         }
 
-        private void routableConnector_DoubleClick(NNodeViewEventArgs args)
-        {
-            NShape shape = args.Node as NShape;
-            if (shape == null)
-                return;
-
-            MessageBox.Show(shape.Name + "\n [" + shape.FromShape.AggregateModel.Name + " , " + shape.StartPlug.InwardPort.Name
-                + "]\n >> \n[" + shape.ToShape.AggregateModel.Name + " , " + shape.EndPlug.InwardPort.Name + "]", "Country clicked:", MessageBoxButtons.OK, MessageBoxIcon.None);
-            args.Handled = true;
-        }
+        
 
         private void InitDocument_oldVersion()
         {
@@ -804,10 +803,10 @@ namespace VerilogVisualizerTest
         {
             Module _module = (Module)mod.ShallowCopy();
 
-            List<NGroup> inPortList = new List<NGroup>();
-            List<NGroup> outPortList = new List<NGroup>();
-            List<NGroup> instanceList = new List<NGroup>();
-            MultiKeyDictionary<string, string, NGroup> objMDict = new MultiKeyDictionary<string, string, NGroup>();
+            inPortList.Clear();
+            outPortList.Clear();
+            instanceList.Clear();
+            objMDict.Clear();
 
             if(_module.Name != topModuleName)
                 _module.Name = string.Copy(ModulePool[_module.Type].Name);
@@ -892,8 +891,16 @@ namespace VerilogVisualizerTest
 
                 if ((i + 1) % 3 == 0 && i != 0)
                 {
-                    yInsPos += yInsPos + (int)gList[i - 2].Bounds.Height + 100;
+                    yInsPos = yInsPos + (int)gList[i - 2].Bounds.Height + 100;
+                    //yInsPos = yInsPos + 100;//(int)gList[i - 2].Bounds.Height + 100;
+
+                    //MessageBox.Show(string.Format("Y value: {0}", yInsPos));
+
+                    if (xPortPos < xInsPos)
+                        xPortPos = xInsPos;
+
                     xInsPos = 200;
+
                 }
 
                 // check instance max x pos
@@ -1205,16 +1212,33 @@ namespace VerilogVisualizerTest
 
         private void treeView2_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            TreeNode node = treeView1.SelectedNode;
+            TreeNode node = treeView2.SelectedNode;
 
             MessageBox.Show(string.Format("You selected: {0}", node.Text));
 
-            nDrawingView1.LockRefresh = true;
+            
             //document.ActiveLayer.RemoveAllChildren();
 
             //Update_instance(finded_instance_update(find_instance(node.Text)));
 
-            nDrawingView1.LockRefresh = false;
+            NGroup instance = CreateInstance(node.Text, BaseModels[node.Text].Ports, "None");
+            document.ActiveLayer.AddChild(instance);
+            instanceList.Add(instance);
+
+            setInstancesPos(instanceList, inPortList, outPortList);
+
+            document.SizeToContent();
+        }
+
+        private void routableConnector_DoubleClick(NNodeViewEventArgs args)
+        {
+            NShape shape = args.Node as NShape;
+            if (shape == null)
+                return;
+
+            MessageBox.Show(shape.Name + "\n [" + shape.FromShape.AggregateModel.Name + " , " + shape.StartPlug.InwardPort.Name
+                + "]\n >> \n[" + shape.ToShape.AggregateModel.Name + " , " + shape.EndPlug.InwardPort.Name + "]", "Country clicked:", MessageBoxButtons.OK, MessageBoxIcon.None);
+            args.Handled = true;
         }
     }
 }
