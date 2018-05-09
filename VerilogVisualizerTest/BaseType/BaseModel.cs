@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VerilogVisualizerTest
 {
-    class BaseModel
+    public class BaseModel
     {
         private string name;
         private string type;

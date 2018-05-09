@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VerilogVisualizerTest
 {
-    class State
+    public class State
     {
         private string ta;
         private string name;
